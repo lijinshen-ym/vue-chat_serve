@@ -1,6 +1,6 @@
 const User = require("../model/userModel")
-const { encrypt } = require("../controllers/crypto")
-const { emailSignUp } = require("../controllers/email")
+const { encrypt } = require("../tool/crypto")
+const { emailSignUp } = require("../tool/email")
 exports.register = async (data) => {
     const result = await User.findOne({ email: data.email })
     if (result) {

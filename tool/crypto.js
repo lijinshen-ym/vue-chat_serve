@@ -1,6 +1,6 @@
 // 密码加密模块
 let crypto = require('crypto');
-let { iv, key } = require("../controllers/commom")
+let { iv, key } = require("./commom")
 //加密
 exports.encrypt = str => {
     var cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
