@@ -1,4 +1,5 @@
 const User = require("../model/userModel")
+const { encrypt } = require("../controllers/crypto")
 const { emailSignUp } = require("../controllers/email")
 exports.register = async (data) => {
     const result = await User.findOne({ email: data.email })
@@ -8,10 +9,11 @@ exports.register = async (data) => {
             msg: "该邮箱已经注册，请更换邮箱"
         }
     } else {
+        let pwd = encrypt(data.pwd, "yemeng")
         let res = await User.create({
             name: data.name,
             email: data.email,
-            pwd: data.pwd,
+            pwd,
         })
         let log = emailSignUp(data.email)
         return {
