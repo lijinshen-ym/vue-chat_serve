@@ -9,7 +9,7 @@ exports.register = async (data) => {
             msg: "该邮箱已经注册，请更换邮箱"
         }
     } else {
-        let pwd = encrypt(data.pwd, "yemeng")
+        let pwd = encrypt(data.pwd)
         let res = await User.create({
             name: data.name,
             email: data.email,
