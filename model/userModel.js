@@ -9,11 +9,11 @@ const userSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        default: "中国"
+        default: "广东省-深圳市-宝安区"
     },
-    ctime: {
-        type: Date,
-        default: Date.now
+    birthday: {
+        type: String,
+        default: "2000-1-1"
     },
     avatars: {
         type: String,
