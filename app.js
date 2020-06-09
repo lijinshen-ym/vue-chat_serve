@@ -8,6 +8,9 @@ const mongoose = require("mongoose")
 const fs = require("fs")
 const path = require("path")
 
+// 处理文件上传
+const { upload } = require("./tool/multer")
+
 const routesData = {}
 
 app.use(bodyParser());
@@ -25,7 +28,11 @@ files.forEach(item => {
 for (let key in routesData) {
     let [method, url] = key.split(' ')
     method = method.toLowerCase()
-    router[method](url, routesData[key])
+    if (url.includes("/upload")) {  //处理传文件
+        router[method](url, upload.single('file'), routesData[key])
+    } else { //处理普通路由
+        router[method](url, routesData[key])
+    }
 }
 
 
