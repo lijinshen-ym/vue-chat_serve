@@ -9,4 +9,5 @@ const friendSchema = new mongoose.Schema({
     userID: { type: Schema.Types.ObjectId, ref: 'User' },	//用户id
     children: [friend]
 })
+
 module.exports = mongoose.model("Friend", friendSchema);

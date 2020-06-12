@@ -1,8 +1,6 @@
 const { verifyToken } = require("../tool/token")
 const User = require("../model/userModel")
 
-
-
 exports.upload = async (token, url) => {
     let userToken = verifyToken(token)
     let result = await User.updateOne({ _id: userToken.id }, { avatars: url })
