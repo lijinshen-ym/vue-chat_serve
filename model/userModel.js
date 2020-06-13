@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        default: "广东省-深圳市-宝安区"
+        default: "广东省深圳市宝安区"
     },
     birthday: {
         type: String,

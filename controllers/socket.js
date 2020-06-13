@@ -13,8 +13,6 @@ module.exports = (io, socket) => {
                 socketId: socket.id
             })
         }
-        console.log(id)
-        console.log(socket.id)
         // socket
         // let result = users.find(item => {
         //     return item.userName == data.userName

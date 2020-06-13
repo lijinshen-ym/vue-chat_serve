@@ -1,13 +1,15 @@
 const mongoose = require("mongoose")
 
-var friend = new mongoose.Schema({
-    friendID: { type: Schema.Types.ObjectId, ref: 'User' },	//好友id
-    nickname: { type: String },							//好友昵称
-});
-
 const friendSchema = new mongoose.Schema({
-    userID: { type: Schema.Types.ObjectId, ref: 'User' },	//用户id
-    children: [friend]
+    userID: String,	//用户id
+    friend_list: Array,
+    group_list: Object,   //分组列表
+    // 存储的格式
+    // key(分组):[{好友},{好友}]
+    // 例：
+    //  A:[
+    //    {id,nickName}
+    //  ]
 })
 
-module.exports = mongoose.model("Friend", friendSchema);
+module.exports = mongoose.model("friend", friendSchema);
