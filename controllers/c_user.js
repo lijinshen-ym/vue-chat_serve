@@ -5,7 +5,7 @@ const { decrypt } = require("../tool/crypto")
 const Application = require("../model/application")
 
 // 获取用户信息
-exports.getinfo = async data => {
+exports.getInfo = async data => {
     if (data.id) {
         let users = await User.findOne({ _id: data.id })
         return users
@@ -73,7 +73,6 @@ exports.findUser = async data => {
     let tokenUser = await User.findOne({ _id: res.id })
     if (user) {
         let result = await Friend.findOne({ userID: res.id })
-        console.log(result)
         if (result) {
             let isFriend = result.friend_list.map(item => {
                 return item == user._id
@@ -95,7 +94,7 @@ exports.findUser = async data => {
     }
 }
 
-// 添加好友
+// 发送好友请求
 exports.addition = async data => {
     let { token, id, note } = data
     let res = verifyToken(token)
@@ -105,7 +104,7 @@ exports.addition = async data => {
         answer = await Application.create({
             userID: id,
             applyList: [
-                { note, applyId: res.id }
+                { note, applyId: res.id, time: new Date() }
             ]
         })
     } else {
@@ -113,19 +112,65 @@ exports.addition = async data => {
         let bool = arr.map(item => {
             return item.applyId == res.id
         })
-        console.log(arr, bool)
         // 存在的话则先删除
         if (bool) {
             let sss = await Application.update({ userID: id }, { $pull: { applyList: { applyId: res.id } } })
-            console.log(sss)
         }
         answer = await Application.update({
             userID: id,
         }, {
             '$push': {
-                applyList: { note, applyId: res.id }
+                applyList: { note, applyId: res.id, time: new Date() }
             }
         });
     }
-    return answer
+    if (answer.nModified == 0) {
+        return {
+            status: 0,
+            msg: "请求发送失败，请稍后再试"
+        }
+
+    } else {
+        return {
+            status: 1,
+            msg: "请求发送成功"
+        }
+    }
+}
+
+// 获取好友请求
+exports.acquire = async data => {
+    let res = verifyToken(data.token)
+    let result = await Application.findOne({ userID: res.id })
+    // type 为 number 时获取的是请求的数量
+    // type 为 details 时获取的是请求的详情
+    if (data.type == "number") {
+        if (result) {
+            return result
+        } else {
+            return {
+                applyList: []
+            }
+        }
+    } else {
+        let acquire = {
+            userID: result.userID,
+            applyList: []
+        }
+        result.applyList.map(item => {
+            acquire.applyList.push({
+                note: item.note,
+                applyId: item.applyId,
+                time: item.time
+            })
+        })
+        let arr = await Promise.all(acquire.applyList.map(async item => {
+            let user = await User.findOne({ _id: item.applyId })
+            item.avatars = user.avatars
+            item.name = user.name
+            return item
+        }))
+        return acquire
+    }
+
 }

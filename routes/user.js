@@ -1,38 +1,43 @@
-const { getinfo, modify, findUser, addition } = require("../controllers/c_user")
+const {
+    getInfo,
+    modify,
+    findUser,
+    addition,
+    acquire
+} = require("../controllers/c_user")
 
 module.exports = {
+
+    // 获取用户信息
     "GET /user/info": async ctx => {
-        let user = await getinfo(ctx.request.query)
+        let user = await getInfo(ctx.request.query)
         ctx.body = {
             msg: "获取成功",
             status: 200,
             user
         }
     },
+    // 修改用户信息
     "POST /user/modify": async ctx => {
         let res = await modify(ctx.request.body)
         ctx.body = res
 
 
     },
-
+    // 查找用户
     "GET /user/find": async ctx => {
         let res = await findUser(ctx.request.query)
         ctx.body = res
     },
-
+    // 发送好友请求
     "POST /user/addition": async ctx => {
         let res = await addition(ctx.request.body)
-        if (res.nModified) {
-            ctx.body = {
-                status: 1,
-                msg: "请求发送成功"
-            }
-        } else {
-            ctx.body = {
-                status: 0,
-                msg: "请求发送失败，请稍后再试"
-            }
-        }
+        ctx.body = res
+    },
+    // 获取好友请求
+    "GET /user/acquire": async ctx => {
+        let res = await acquire(ctx.request.query)
+        ctx.body = res
     }
+
 }
