@@ -2,8 +2,6 @@ const {
     getInfo,
     modify,
     findUser,
-    addition,
-    acquire
 } = require("../controllers/c_user")
 
 module.exports = {
@@ -29,15 +27,5 @@ module.exports = {
         let res = await findUser(ctx.request.query)
         ctx.body = res
     },
-    // 发送好友请求
-    "POST /user/addition": async ctx => {
-        let res = await addition(ctx.request.body)
-        ctx.body = res
-    },
-    // 获取好友请求
-    "GET /user/acquire": async ctx => {
-        let res = await acquire(ctx.request.query)
-        ctx.body = res
-    }
 
 }
