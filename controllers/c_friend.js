@@ -158,18 +158,34 @@ exports.friends = async data => {
     return { friends: val, total: friend_list.length }
 }
 
-// 判断用户是否为好友
-exports.judge = async data => {
-    let { token, id } = data
+
+// 修改好友昵称
+exports.changeNick = async data => {
+    let { token, id, nickName } = data
     let tokenRes = verifyToken(token)
-    let res = await Friend.findOne({ userID: tokenRes.id })
-    let friend_list = res.friend_list
-    let index = friend_list.findIndex(item => {
+    let result = await Friend.findOne({ userID: tokenRes.id })
+    let index = result.friend_list.findIndex(item => {
         return item.user == id
     })
-    if (index) {
-        return { status: 1, isFriend: true }
+    result.friend_list[8].nickName = nickName
+    let friend_list = result.friend_list
+    console.log(index)
+    let ss = await Friend.update({ userID: tokenRes.id, "friend_list.user": id }, {
+        $set:
+        {
+            friend_list: friend_list
+        }
+    })
+    console.log(ss)
+    if (ss.nModified) {
+        return {
+            msg: "修改成功",
+            status: 1
+        }
     } else {
-        return { status: 1, isFriend: false }
+        return {
+            msg: "修改失败",
+            status: 0
+        }
     }
 }

@@ -5,7 +5,6 @@ const {
 } = require("../controllers/c_user")
 
 module.exports = {
-
     // 获取用户信息
     "GET /user/info": async ctx => {
         let user = await getInfo(ctx.request.query)

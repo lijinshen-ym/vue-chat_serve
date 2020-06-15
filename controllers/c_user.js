@@ -27,7 +27,6 @@ exports.getInfo = async data => {
                 email: obj.user.email,
                 isFriend: true
             }
-            console.log(user)
             return user
         } else {
             let result = await User.findOne({ _id: id })
@@ -113,7 +112,6 @@ exports.findUser = async data => {
             let index = result.friend_list.findIndex(item => {
                 return item.user == user.id
             })
-            console.log(index)
             if (index >= 0) {
                 obj.isFriend = true
             } else {
@@ -125,7 +123,6 @@ exports.findUser = async data => {
         if (tokenUser.email == data.email) {
             obj.isFriend = true
         }
-        console.log(obj)
         return obj
     } else {
         return { msg: "未找到该用户", status: 0 }

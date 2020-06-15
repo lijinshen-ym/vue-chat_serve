@@ -3,8 +3,9 @@ const {
     acquire,
     deal,
     friends,
-    judge
+    changeNick
 } = require("../controllers/c_friend")
+const { modify } = require("../controllers/c_user")
 
 module.exports = {
     // 发送好友请求
@@ -30,9 +31,10 @@ module.exports = {
         ctx.body = res
     },
 
-    // 判断用户是否为好友
-    "GET /friend/judge": async ctx => {
-        let res = await judge(ctx.request.query)
+    // 修改好友昵称
+    "POST /friend/modify": async ctx => {
+        let res = await changeNick(ctx.request.body)
         ctx.body = res
     }
+
 }
