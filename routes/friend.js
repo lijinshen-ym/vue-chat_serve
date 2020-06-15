@@ -1,7 +1,8 @@
 const {
     addition,
     acquire,
-    deal
+    deal,
+    friends
 } = require("../controllers/c_friend")
 
 module.exports = {
@@ -19,6 +20,11 @@ module.exports = {
     // 处理好友请求
     "POST /friend/deal": async ctx => {
         let res = await deal(ctx.request.body)
+        ctx.body = res
+    },
+
+    "GET /friend/friends": async ctx => {
+        let res = await friends(ctx.request.query)
         ctx.body = res
     }
 }

@@ -84,23 +84,17 @@ exports.acquire = async data => {
 
 }
 
+// 处理好友请求
 exports.deal = async data => {
-    console.log(data)
     let { token, applyId, operation, nickName } = data
     let tokenRes = verifyToken(token)
     if (operation == "agree") {
-        let pinyin = chineseToPinYin(nickName)
-        let initial = pinyin.substr(0, 1)
-        console.log(initial)
         let table = await Friend.findOne({ userID: tokenRes.id })
         let answer = null
         if (table) {
-            table.group_list[initial].push({ "id": applyId, nickName })
-            table.friend_list.push(applyId)
-            console.log(list)
             answer = await Friend.update({
                 userID: tokenRes.id
-            }, { $set: { friend_list: table.friend_list, group_list: table.group_list } })
+            }, { $push: { friend_list: { user: applyId, nickName } } })
             if (answer.nModified) {
                 let sss = await Application.update({ userID: tokenRes.id }, { $pull: { applyList: { applyId } } })
                 answer = {
@@ -111,8 +105,7 @@ exports.deal = async data => {
         } else {
             answer = await Friend.create({
                 userID: tokenRes.id,
-                friend_list: [applyId],
-                group_list: { [initial]: [{ "id": applyId, nickName }] }
+                friend_list: [{ "user": applyId, nickName }]
             });
             if (answer) {
                 let sss = await Application.update({ userID: tokenRes.id }, { $pull: { applyList: { applyId } } })
@@ -131,4 +124,23 @@ exports.deal = async data => {
         }
     }
 
+}
+
+// 获取好友
+exports.friends = async data => {
+    let { token } = data
+    let tokenRes = verifyToken(token)
+    let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
+    let friend_list = result.friend_list
+    let val = {}
+    for (var i = 0; i < 26; i++) {
+        let res = String.fromCharCode(65 + i);
+        val[res] = []
+    }
+    for (let i = 0; i < friend_list.length; i++) {
+        let pinyin = chineseToPinYin(friend_list[i].nickName)
+        let initial = pinyin.substr(0, 1)
+        val[initial].push(friend_list[i])
+    }
+    return { friends: val, total: friend_list.length }
 }
