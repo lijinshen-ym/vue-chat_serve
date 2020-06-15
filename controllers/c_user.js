@@ -3,16 +3,53 @@ const Friend = require("../model/friendModel")
 const { verifyToken } = require("../tool/token")
 const { decrypt } = require("../tool/crypto")
 
-
 // 获取用户信息
 exports.getInfo = async data => {
-    if (data.id) {
-        let users = await User.findOne({ _id: data.id })
-        return users
-    } else {
-        let res = verifyToken(data.token)
-        let users = await User.findOne({ _id: res.id })
-        return users
+    let { id, token } = data
+    let tokenRes = verifyToken(token)
+    if (id) { //获取其他用户的信息
+        let res = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user")
+        let index = res.friend_list.findIndex(item => {
+            return item.user._id == id
+        })
+        console.log(index)
+        let user = {}
+        if (index > 0) {
+            let obj = res.friend_list[index]
+            user = {
+                nickName: obj.nickName,
+                sex: obj.user.sex,
+                address: obj.user.address,
+                birthday: obj.user.birthday,
+                avatars: obj.user.avatars,
+                signature: obj.user.signature,
+                _id: obj.user._id,
+                name: obj.user.name,
+                email: obj.user.email,
+                isFriend: true
+            }
+            console.log(user)
+            return user
+        } else {
+            let result = await User.findOne({ _id: id })
+            user = {
+                sex: result.sex,
+                address: result.address,
+                birthday: result.birthday,
+                avatars: result.avatars,
+                signature: result.signature,
+                _id: result._id,
+                name: result.name,
+                email: result.email,
+                isFriend: false
+            }
+            return user
+        }
+
+        return user
+    } else { //获取登陆用户的信息
+        let user = await User.findOne({ _id: tokenRes.id })
+        return user
     }
 
 }

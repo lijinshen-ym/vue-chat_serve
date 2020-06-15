@@ -2,7 +2,8 @@ const {
     addition,
     acquire,
     deal,
-    friends
+    friends,
+    judge
 } = require("../controllers/c_friend")
 
 module.exports = {
@@ -23,8 +24,15 @@ module.exports = {
         ctx.body = res
     },
 
+    // 获取好友列表
     "GET /friend/friends": async ctx => {
         let res = await friends(ctx.request.query)
+        ctx.body = res
+    },
+
+    // 判断用户是否为好友
+    "GET /friend/judge": async ctx => {
+        let res = await judge(ctx.request.query)
         ctx.body = res
     }
 }

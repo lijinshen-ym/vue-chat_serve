@@ -90,6 +90,7 @@ exports.deal = async data => {
     let tokenRes = verifyToken(token)
     if (operation == "agree") {
         let table = await Friend.findOne({ userID: tokenRes.id })
+        let applyTable = await Friend.findOne({ userID: applyId })
         let answer = null
         if (table) {
             answer = await Friend.update({
@@ -115,6 +116,16 @@ exports.deal = async data => {
                 }
             }
         }
+        if (applyTable) {
+            let applyResult = await Friend.update({
+                userID: applyId
+            }, { $push: { friend_list: { user: tokenRes.id, nickName } } })
+        } else {
+            let c_s = await Friend.create({
+                userID: applyId,
+                friend_list: [{ "user": tokenRes.id, nickName }]
+            });
+        }
         return answer
     } else {
         let sss = await Application.update({ userID: tokenRes.id }, { $pull: { applyList: { applyId } } })
@@ -133,14 +144,32 @@ exports.friends = async data => {
     let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
     let friend_list = result.friend_list
     let val = {}
+    // 生成大写字母并生成分组对象
     for (var i = 0; i < 26; i++) {
         let res = String.fromCharCode(65 + i);
         val[res] = []
     }
+    // 将好友昵称文字转为拼音并将放入分组对象中
     for (let i = 0; i < friend_list.length; i++) {
         let pinyin = chineseToPinYin(friend_list[i].nickName)
         let initial = pinyin.substr(0, 1)
         val[initial].push(friend_list[i])
     }
     return { friends: val, total: friend_list.length }
+}
+
+// 判断用户是否为好友
+exports.judge = async data => {
+    let { token, id } = data
+    let tokenRes = verifyToken(token)
+    let res = await Friend.findOne({ userID: tokenRes.id })
+    let friend_list = res.friend_list
+    let index = friend_list.findIndex(item => {
+        return item.user == id
+    })
+    if (index) {
+        return { status: 1, isFriend: true }
+    } else {
+        return { status: 1, isFriend: false }
+    }
 }
