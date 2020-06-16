@@ -118,6 +118,7 @@ exports.deal = async data => {
             }
         }
         if (applyTable) {
+            // 获取被申请者的用户资料，获取name属性，并将其作为nickName
             let tokenUser = await User.findOne({ _id: tokenRes.id })
             let applyResult = await Friend.update({
                 userID: applyId
@@ -153,8 +154,15 @@ exports.friends = async data => {
     }
     // 将好友昵称文字转为拼音并将放入分组对象中
     for (let i = 0; i < friend_list.length; i++) {
-        let pinyin = chineseToPinYin(friend_list[i].nickName)
-        let initial = pinyin.substr(0, 1)
+        let reg = new RegExp("^[a-zA-Z]")  //匹配备注是以字母开头的
+        let initial = null
+        if (reg.test(friend_list[i].nickName)) { //如果备注是以字母开头的
+            initial = friend_list[i].nickName.substr(0, 1)
+        } else {
+            let pinyin = chineseToPinYin(friend_list[i].nickName)
+            initial = pinyin.substr(0, 1)
+        }
+        initial = initial.toUpperCase()
         val[initial].push(friend_list[i])
     }
     return { friends: val, total: friend_list.length }

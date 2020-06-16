@@ -50,8 +50,6 @@ io.on("connection", socket => {
     detail(io, socket)
 })
 
-
-
 mongoose.connect("mongodb://localhost:27017/chat", {
     useNewUrlParser: true,
     useUnifiedTopology: true
