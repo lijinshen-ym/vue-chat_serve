@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
-const socketSchame = new mongoose.Schema({
+const socketSchema = new mongoose.Schema({
     userId: String,
     socketId: String
 })
 
-module.exports = mongoose.model("usersocket", socketSchame)
+module.exports = mongoose.model("userSocket", socketSchema)

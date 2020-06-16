@@ -104,6 +104,7 @@ exports.deal = async data => {
                 }
             }
         } else {
+
             answer = await Friend.create({
                 userID: tokenRes.id,
                 friend_list: [{ "user": applyId, nickName }]
@@ -117,13 +118,14 @@ exports.deal = async data => {
             }
         }
         if (applyTable) {
+            let tokenUser = await User.findOne({ _id: tokenRes.id })
             let applyResult = await Friend.update({
                 userID: applyId
-            }, { $push: { friend_list: { user: tokenRes.id, nickName } } })
+            }, { $push: { friend_list: { user: tokenRes.id, nickName: tokenUser.name } } })
         } else {
             let c_s = await Friend.create({
                 userID: applyId,
-                friend_list: [{ "user": tokenRes.id, nickName }]
+                friend_list: [{ "user": tokenRes.id, nickName: tokenUser.name }]
             });
         }
         return answer
@@ -169,14 +171,12 @@ exports.changeNick = async data => {
     })
     result.friend_list[8].nickName = nickName
     let friend_list = result.friend_list
-    console.log(index)
     let ss = await Friend.update({ userID: tokenRes.id, "friend_list.user": id }, {
         $set:
         {
             friend_list: friend_list
         }
     })
-    console.log(ss)
     if (ss.nModified) {
         return {
             msg: "修改成功",
