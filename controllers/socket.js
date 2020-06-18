@@ -1,14 +1,14 @@
 const { verifyToken } = require("../tool/token")
-const urserSocket = require("../model/usersocket")
-const usersocket = require("../model/usersocket")
+const userSocket = require("../model/usersocket")
+const User = require("../model/userModel")
 module.exports = (io, socket) => {
     socket.on("submit", async (data) => {
         let { id } = verifyToken(data)
-        let result = await urserSocket.findOne({ userId: id })
+        let result = await userSocket.findOne({ userId: id })
         if (result) {
-            let res = await urserSocket.updateOne({ userId: id }, { socketId: socket.id })
+            let res = await userSocket.updateOne({ userId: id }, { socketId: socket.id })
         } else {
-            let res = await urserSocket.create({
+            let res = await userSocket.create({
                 userId: id,
                 socketId: socket.id
             })
@@ -30,6 +30,19 @@ module.exports = (io, socket) => {
         //     io.emit("addUser", data)
         //     io.emit("userList", users)
         // }
+    })
+
+    socket.on("deal", async data => {
+        let { applyId, operation, token } = data
+        let tokenRes = verifyToken(token)
+        let user = await User.findOne({ _id: tokenRes.id })
+        let socketUser = await userSocket.findOne({ userId: applyId })
+        let name = user.name
+        let opera = operation == "Refused" ? "拒绝" : "同意"
+        io.to(socketUser.socketId).emit("notification", {
+            msg: "用户" + name + opera + "了你的好友请求",
+            date: new Date()
+        })
     })
 
     // //发送信息

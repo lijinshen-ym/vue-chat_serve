@@ -9,25 +9,41 @@ exports.getInfo = async data => {
     let tokenRes = verifyToken(token)
     if (id) { //获取其他用户的信息
         let res = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user")
-        let index = res.friend_list.findIndex(item => {
-            return item.user._id == id
-        })
         let user = {}
-        if (index >= 0) {
-            let obj = res.friend_list[index]
-            user = {
-                nickName: obj.nickName,
-                sex: obj.user.sex,
-                address: obj.user.address,
-                birthday: obj.user.birthday,
-                avatars: obj.user.avatars,
-                signature: obj.user.signature,
-                _id: obj.user._id,
-                name: obj.user.name,
-                email: obj.user.email,
-                isFriend: true
+        if (res) {
+            let index = res.friend_list.findIndex(item => {
+                return item.user._id == id
+            })
+            if (index >= 0) {
+                let obj = res.friend_list[index]
+                user = {
+                    nickName: obj.nickName,
+                    sex: obj.user.sex,
+                    address: obj.user.address,
+                    birthday: obj.user.birthday,
+                    avatars: obj.user.avatars,
+                    signature: obj.user.signature,
+                    _id: obj.user._id,
+                    name: obj.user.name,
+                    email: obj.user.email,
+                    isFriend: true
+                }
+                return user
+            } else {
+                let result = await User.findOne({ _id: id })
+                user = {
+                    sex: result.sex,
+                    address: result.address,
+                    birthday: result.birthday,
+                    avatars: result.avatars,
+                    signature: result.signature,
+                    _id: result._id,
+                    name: result.name,
+                    email: result.email,
+                    isFriend: false
+                }
+                return user
             }
-            return user
         } else {
             let result = await User.findOne({ _id: id })
             user = {
@@ -44,12 +60,14 @@ exports.getInfo = async data => {
             return user
         }
 
+
+
+
         return user
     } else { //获取登陆用户的信息
         let user = await User.findOne({ _id: tokenRes.id })
         return user
     }
-
 }
 
 // 修改用户信息

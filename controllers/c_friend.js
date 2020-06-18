@@ -3,6 +3,7 @@ const Friend = require("../model/friendModel")
 const { verifyToken } = require("../tool/token")
 const Application = require("../model/application")
 const { chineseToPinYin } = require("../tool/parseChinese")
+const Notify = require("../model/notifyModel")
 // 发送好友请求
 exports.addition = async data => {
     let { token, id, note } = data
@@ -88,6 +89,19 @@ exports.acquire = async data => {
 exports.deal = async data => {
     let { token, applyId, operation, nickName } = data
     let tokenRes = verifyToken(token)
+    let notifyRes = await Notify.findOne({ userID: applyId })
+    let msg = operation == "agree" ? "同意了你的好友申请" : "拒绝了你的好友"
+    let notifyResult = null
+    if (notifyRes) {
+        notifyResult = await Notify.update({
+            "userID": applyId
+        }, { $push: { "notifyList": { "user": tokenRes.id, "message": msg, "genre": "application", "date": new Date() } } })
+    } else {
+        notifyResult = await Notify.create({
+            userID: applyId,
+            notify_list: [{ "user": tokenRes.id, "message": msg, "type": "application", "genre": "Application", "date": new Date() }]
+        })
+    }
     if (operation == "agree") {
         let table = await Friend.findOne({ userID: tokenRes.id })
         let applyTable = await Friend.findOne({ userID: applyId })
@@ -129,6 +143,7 @@ exports.deal = async data => {
                 friend_list: [{ "user": tokenRes.id, nickName: tokenUser.name }]
             });
         }
+
         return answer
     } else {
         let sss = await Application.update({ userID: tokenRes.id }, { $pull: { applyList: { applyId } } })
@@ -144,28 +159,34 @@ exports.deal = async data => {
 exports.friends = async data => {
     let { token } = data
     let tokenRes = verifyToken(token)
-    let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
-    let friend_list = result.friend_list
-    let val = {}
-    // 生成大写字母并生成分组对象
-    for (var i = 0; i < 26; i++) {
-        let res = String.fromCharCode(65 + i);
-        val[res] = []
-    }
-    // 将好友昵称文字转为拼音并将放入分组对象中
-    for (let i = 0; i < friend_list.length; i++) {
-        let reg = new RegExp("^[a-zA-Z]")  //匹配备注是以字母开头的
-        let initial = null
-        if (reg.test(friend_list[i].nickName)) { //如果备注是以字母开头的
-            initial = friend_list[i].nickName.substr(0, 1)
-        } else {
-            let pinyin = chineseToPinYin(friend_list[i].nickName)
-            initial = pinyin.substr(0, 1)
+    let friend = await Friend.findOne({ userID: tokenRes.id })
+    if (friend) {
+        let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
+        let friend_list = result.friend_list
+        let val = {}
+        // 生成大写字母并生成分组对象
+        for (var i = 0; i < 26; i++) {
+            let res = String.fromCharCode(65 + i);
+            val[res] = []
         }
-        initial = initial.toUpperCase()
-        val[initial].push(friend_list[i])
+        // 将好友昵称文字转为拼音并将放入分组对象中
+        for (let i = 0; i < friend_list.length; i++) {
+            let reg = new RegExp("^[a-zA-Z]")  //匹配备注是以字母开头的
+            let initial = null
+            if (reg.test(friend_list[i].nickName)) { //如果备注是以字母开头的
+                initial = friend_list[i].nickName.substr(0, 1)
+            } else { //备注是文字开头
+                let pinyin = chineseToPinYin(friend_list[i].nickName)
+                initial = pinyin.substr(0, 1)
+            }
+            initial = initial.toUpperCase()
+            val[initial].push(friend_list[i])
+        }
+        return { friends: val, total: friend_list.length }
+    } else {
+        return { friends: {}, total: 0 }
     }
-    return { friends: val, total: friend_list.length }
+
 }
 
 
@@ -177,7 +198,7 @@ exports.changeNick = async data => {
     let index = result.friend_list.findIndex(item => {
         return item.user == id
     })
-    result.friend_list[8].nickName = nickName
+    result.friend_list[index].nickName = nickName
     let friend_list = result.friend_list
     let ss = await Friend.update({ userID: tokenRes.id, "friend_list.user": id }, {
         $set:

@@ -37,7 +37,7 @@ files.forEach(item => {
 for (let key in routesData) {
     let [method, url] = key.split(' ')
     method = method.toLowerCase()
-    if (url.includes("/upload")) {  //处理传文件
+    if (url.includes("/upload")) {  //处理上传文件的路由
         router[method](url, upload.single('file'), routesData[key])
     } else { //处理普通路由
         router[method](url, routesData[key])
