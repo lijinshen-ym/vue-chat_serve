@@ -222,3 +222,35 @@ exports.changeNick = async data => {
         }
     }
 }
+
+
+// 删除好友
+exports.deleteFriend = async data => {
+    let { token, id } = data
+    let tokenRes = verifyToken(token)
+
+    // 将id用户从登陆用户的好友列表中删除
+    let tokenFriend = await Friend.findOne({ userID: tokenRes.id })
+    let friend_list = tokenFriend.friend_list
+    let index = friend_list.findIndex(item => {
+        return item._id == id
+    })
+    friend_list.splice(index, 1)
+    let modifyResult = await Friend.update({ userID: tokenRes.id }, { $set: { friend_list: friend_list } })
+
+    // 将token用户从好友的好友列表中删除
+    let idFriend = await Friend.findOne({ userID: id })
+    friend_list = idFriend.friend_list
+    index = friend_list.findIndex(item => {
+        return item._id == tokenRes.id
+    })
+    friend_list.splice(index, 1)
+    let idResult = await Friend.update({ userID: id }, { $set: { friend_list: friend_list } })
+
+
+    if (modifyResult.nModified) {
+        return { status: 1, msg: "好友删除成功" }
+    } else {
+        return { status: 0, msg: "好友删除失败" }
+    }
+}

@@ -3,7 +3,8 @@ const {
     acquire,
     deal,
     friends,
-    changeNick
+    changeNick,
+    deleteFriend
 } = require("../controllers/c_friend")
 const { modify } = require("../controllers/c_user")
 
@@ -34,6 +35,12 @@ module.exports = {
     // 修改好友昵称
     "POST /friend/modify": async ctx => {
         let res = await changeNick(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 删除好友
+    "POST /friend/delete": async ctx => {
+        let res = await deleteFriend(ctx.request.body)
         ctx.body = res
     }
 

@@ -44,6 +44,6 @@ exports.deleteNotice = async data => {
     if (modifyResult.nModified) {
         return { status: 1, msg: "操作成功" }
     } else {
-        return { status: 1, msg: "操作失败" }
+        return { status: 0, msg: "操作失败" }
     }
 }
