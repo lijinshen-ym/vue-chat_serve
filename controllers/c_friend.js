@@ -89,19 +89,23 @@ exports.acquire = async data => {
 exports.deal = async data => {
     let { token, applyId, operation, nickName } = data
     let tokenRes = verifyToken(token)
+    // 通知
     let notifyRes = await Notify.findOne({ userID: applyId })
     let msg = operation == "agree" ? "同意了你的好友申请" : "拒绝了你的好友"
     let notifyResult = null
     if (notifyRes) {
+        // 更新通知表
         notifyResult = await Notify.update({
             "userID": applyId
-        }, { $push: { "notifyList": { "user": tokenRes.id, "message": msg, "genre": "application", "date": new Date() } } })
+        }, { $push: { "notify_list": { "user": tokenRes.id, "message": msg, "genre": "application", "unRead": false, "date": new Date() } } })
     } else {
+        // 创建通知表
         notifyResult = await Notify.create({
             userID: applyId,
-            notify_list: [{ "user": tokenRes.id, "message": msg, "type": "application", "genre": "Application", "date": new Date() }]
+            notify_list: [{ "user": tokenRes.id, "message": msg, "type": "application", "genre": "Application", "unRead": false, "date": new Date() }]
         })
     }
+    // 关于好友表的操作
     if (operation == "agree") {
         let table = await Friend.findOne({ userID: tokenRes.id })
         let applyTable = await Friend.findOne({ userID: applyId })
