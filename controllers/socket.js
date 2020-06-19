@@ -1,7 +1,9 @@
 const { verifyToken } = require("../tool/token")
 const userSocket = require("../model/usersocket")
 const User = require("../model/userModel")
+const { saveChat } = require("../controllers/c_chat")
 module.exports = (io, socket) => {
+    // 登陆连接
     socket.on("submit", async (data) => {
         let { id } = verifyToken(data)
         let result = await userSocket.findOne({ userId: id })
@@ -13,25 +15,8 @@ module.exports = (io, socket) => {
                 socketId: socket.id
             })
         }
-        // socket
-        // let result = users.find(item => {
-        //     return item.userName == data.userName
-        // })
-        // socket.emit("login", result)
-        // if (!result) {
-        //     // 存储当前登陆用户的信息
-        //     socket.userName = data.userName
-        //     socket.avatar = data.avatar
-
-        //     // 加入到用户数组
-        //     users.push(data)
-        //     socket.emit("loginSuccess", data)
-
-        //     io.emit("addUser", data)
-        //     io.emit("userList", users)
-        // }
     })
-
+    // 好友申请通知
     socket.on("deal", async data => {
         let { applyId, operation, token } = data
         let tokenRes = verifyToken(token)
@@ -45,10 +30,16 @@ module.exports = (io, socket) => {
         })
     })
 
-    // //发送信息
-    // socket.on("sendMsg", data => {
-    //     io.emit("sendAll", data)
-    // })
+    //发送信息
+    socket.on("sendMsg", async data => {
+        let { id, token } = data
+        let tokenRes = verifyToken(token)
+        // 存储聊天记录
+        let res = await saveChat(data)
+
+        let socketUser = await userSocket.findOne({ userId: id })
+        io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id })
+    })
 
     // //发送图片
     // socket.on("sendFile", data => {

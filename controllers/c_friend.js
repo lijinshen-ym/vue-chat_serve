@@ -247,7 +247,6 @@ exports.deleteFriend = async data => {
     friend_list.splice(index, 1)
     let idResult = await Friend.update({ userID: id }, { $set: { friend_list: friend_list } })
 
-
     if (modifyResult.nModified) {
         return { status: 1, msg: "好友删除成功" }
     } else {

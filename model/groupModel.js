@@ -13,7 +13,7 @@ var GroupUserSchema = new mongoose.Schema({
 var GroupSchema = new mongoose.Schema({
     userID: { type: Schema.Types.ObjectId, ref: 'User' },	//用户id
     name: { type: String },								//群名称
-    imgurl: { type: String, default: 'group.png' },		//群头像
+    imgUrl: { type: String, default: 'group.png' },		//群头像
     time: { type: Date },								    //创建时间
     notice: { type: String },								//公告
     children: [GroupUserSchema]
