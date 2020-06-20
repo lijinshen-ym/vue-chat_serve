@@ -1,7 +1,8 @@
 const { verifyToken } = require("../tool/token")
 const User = require("../model/userModel")
+const { saveChat } = require("../controllers/c_chat")
 
-exports.upload = async (token, url) => {
+exports.avatars = async (token, url) => {
     let userToken = verifyToken(token)
     let result = await User.updateOne({ _id: userToken.id }, { avatars: url })
     if (result.nModified) {
@@ -15,4 +16,9 @@ exports.upload = async (token, url) => {
             msg: "修改失败"
         }
     }
+}
+
+exports.chatMsg = async (data) => {
+    let res = await saveChat(data)
+    return { status: 1, msg: "上传成功" }
 }
