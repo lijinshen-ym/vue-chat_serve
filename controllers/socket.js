@@ -32,11 +32,12 @@ module.exports = (io, socket) => {
 
     //发送信息
     socket.on("sendMsg", async data => {
-        let { id, token } = data
+        let { id, token, type } = data
         let tokenRes = verifyToken(token)
-        // 存储聊天记录
-        let res = await saveChat(data)
-
+        if (type == "text") {
+            // 存储聊天记录
+            let res = await saveChat(data)
+        }
         let socketUser = await userSocket.findOne({ userId: id })
         io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id })
     })
