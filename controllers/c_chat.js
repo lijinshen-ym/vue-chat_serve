@@ -1,5 +1,6 @@
 const { verifyToken } = require("../tool/token")
 const Chat = require("../model/chatModel")
+const Friend = require("../model/friendModel")
 
 // 存储聊天记录
 exports.saveChat = async data => {
@@ -52,10 +53,20 @@ exports.history = async data => {
     let { token, id } = data
     let tokenRes = verifyToken(token)
     let tokenChat = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
+    let friend = await Friend.findOne({ userID: tokenRes.id })
+    let index = friend.friend_list.findIndex(item => {
+        return id == item.user
+    })
+    let nickName = friend.friend_list[index].nickName
     if (tokenChat) {
-        return tokenChat
+        return {
+            tokenChat,
+            nickName
+        }
     } else {
-        return {}
+        return {
+            nickName
+        }
     }
 
 }
