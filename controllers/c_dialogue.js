@@ -30,17 +30,14 @@ exports.updateUnRead = async data => {
     let { token, id } = data
     let tokenRes = verifyToken(token)
     let dialogToken = await Dialogue.findOne({ userID: tokenRes.id })
-    console.log(dialogToken)
     if (dialogToken) {
         let chat_list = dialogToken.chat_list
         let index = chat_list.findIndex(item => {
             return item.id == id
         })
-        console.log(index)
         if (index >= 0) {
             chat_list[index].unRead = 0
             let dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
-            console.log(dialogRes)
             return dialogRes
         }
     }

@@ -4,6 +4,7 @@ const { verifyToken } = require("../tool/token")
 const Application = require("../model/application")
 const { chineseToPinYin } = require("../tool/parseChinese")
 const Notify = require("../model/notifyModel")
+const Dialogue = require("../model/dialogueModel")
 // 发送好友请求
 exports.addition = async data => {
     let { token, id, note } = data
@@ -135,9 +136,9 @@ exports.deal = async data => {
                 }
             }
         }
+        // 获取被申请者的用户资料，获取name属性，并将其作为nickName
+        let tokenUser = await User.findOne({ _id: tokenRes.id })
         if (applyTable) {
-            // 获取被申请者的用户资料，获取name属性，并将其作为nickName
-            let tokenUser = await User.findOne({ _id: tokenRes.id })
             let applyResult = await Friend.update({
                 userID: applyId
             }, { $push: { friend_list: { user: tokenRes.id, nickName: tokenUser.name } } })
@@ -246,6 +247,27 @@ exports.deleteFriend = async data => {
     })
     friend_list.splice(index, 1)
     let idResult = await Friend.update({ userID: id }, { $set: { friend_list: friend_list } })
+
+
+    // 将与好友的会话从会话列表中删除
+    let dialogToken = await Dialogue.findOne({ userID: tokenRes.id })
+    if (dialogToken) {
+        let chat_list = dialogToken.chat_list
+        let index = chat_list.findIndex(item => {
+            return item.id == id
+        })
+        chat_list.splice(index, 1)
+        dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
+    }
+    let dialogID = await Dialogue.findOne({ userID: id })
+    if (dialogID) {
+        let chat_list = dialogID.chat_list
+        let index = chat_list.findIndex(item => {
+            return item.id == tokenRes.id
+        })
+        chat_list.splice(index, 1)
+        dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
+    }
 
     if (modifyResult.nModified) {
         return { status: 1, msg: "好友删除成功" }

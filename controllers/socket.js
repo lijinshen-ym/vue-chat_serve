@@ -16,6 +16,15 @@ module.exports = (io, socket) => {
             })
         }
     })
+
+
+    // 发送好友申请
+    socket.on("sendDemand", async data => {
+        let { id } = data
+        let socketUser = await userSocket.findOne({ userId: id })
+        io.to(socketUser.socketId).emit("receiveDemand")
+    })
+
     // 好友申请通知
     socket.on("deal", async data => {
         let { applyId, operation, token } = data

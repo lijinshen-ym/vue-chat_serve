@@ -60,17 +60,18 @@ exports.saveChat = async data => {
         if (index >= 0) {
             chat_list[index].message = message
             chat_list[index].date = new Date()
+            chat_list[index].msgType = type
             dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
         } else {
             chat_list.push({
-                id, type: chatType, message, date: new Date(), unRead: 0
+                id, type: chatType, msgType: type, message, date: new Date(), unRead: 0
             })
             dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
         }
     } else {
         dialogRes = await Dialogue.create({
             "userID": tokenRes.id,
-            "chat_list": [{ "id": id, "type": chatType, "message": message, "date": new Date(), "unRead": 0 }]
+            "chat_list": [{ "id": id, "type": chatType, "msgType": type, "message": message, "date": new Date(), "unRead": 0 }]
         })
     }
     // 更新对话信息（好友）
@@ -83,18 +84,19 @@ exports.saveChat = async data => {
         if (index >= 0) {
             chat_list[index].message = message
             chat_list[index].date = new Date()
+            chat_list[index].msgType = type
             chat_list[index].unRead = chat_list[index].unRead + 1
             dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
         } else {
             chat_list.push({
-                id: tokenRes.id, type: chatType, message, date: new Date(), unRead: 1
+                id: tokenRes.id, type: chatType, msgType: type, message, date: new Date(), unRead: 1
             })
             dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
         }
     } else {
         dialogRes = await Dialogue.create({
             "userID": id,
-            "chat_list": [{ "id": tokenRes.id, "type": chatType, "message": message, "date": new Date(), "unRead": 1 }]
+            "chat_list": [{ "id": tokenRes.id, "msgType": type, "type": chatType, "message": message, "date": new Date(), "unRead": 1 }]
         })
     }
 }

@@ -7,7 +7,7 @@ const mongoose = require("mongoose")
 const dialogueSchema = new mongoose.Schema({
     "userID": String,
     "chat_list": []
-    // { "id": String, "type": String, "message": String, "date": { "type": Date, "default": Date.now() }, "unRead": Number }
+    // { "id": String, "type": String,"msgType","message": String, "date": { "type": Date, "default": Date.now() }, "unRead": Number }
 })
 
 module.exports = mongoose.model("dialogue", dialogueSchema);
