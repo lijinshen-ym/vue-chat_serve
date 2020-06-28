@@ -5,9 +5,7 @@ const multer = require('koa-multer')
 var storage = multer.diskStorage({
     //文件保存路径 public/userImg/
     destination: function (req, file, cb) {
-
         let { savePath } = req.body
-        console.log("我是multer", req.body, savePath)
         cb(null, savePath)
     },
     //修改文件名称
