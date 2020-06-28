@@ -49,34 +49,54 @@ exports.saveChat = async data => {
     }
 
 
-    // 更新对话信息 
+    // 更新对话信息(token用户)
     let dialogRes = null
     let dialogToken = await Dialogue.findOne({ userID: tokenRes.id })
     if (dialogToken) {
         let chat_list = dialogToken.chat_list
         let index = chat_list.findIndex(item => {
-            console.log(item.id, id)
             return item.id == id
         })
-        console.log(index)
         if (index >= 0) {
             chat_list[index].message = message
             chat_list[index].date = new Date()
             dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
         } else {
             chat_list.push({
-                id, type: chatType, message, date: new Date(), unRead: 1
+                id, type: chatType, message, date: new Date(), unRead: 0
             })
             dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
         }
     } else {
         dialogRes = await Dialogue.create({
             "userID": tokenRes.id,
-            "chat_list": [{ "id": id, "type": chatType, "message": message, "date": new Date(), "unRead": 1 }]
+            "chat_list": [{ "id": id, "type": chatType, "message": message, "date": new Date(), "unRead": 0 }]
         })
     }
-    console.log(dialogRes)
-
+    // 更新对话信息（好友）
+    let dialogID = await Dialogue.findOne({ userID: id })
+    if (dialogID) {
+        let chat_list = dialogID.chat_list
+        let index = chat_list.findIndex(item => {
+            return item.id == tokenRes.id
+        })
+        if (index >= 0) {
+            chat_list[index].message = message
+            chat_list[index].date = new Date()
+            chat_list[index].unRead = chat_list[index].unRead + 1
+            dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
+        } else {
+            chat_list.push({
+                id: tokenRes.id, type: chatType, message, date: new Date(), unRead: 1
+            })
+            dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
+        }
+    } else {
+        dialogRes = await Dialogue.create({
+            "userID": id,
+            "chat_list": [{ "id": tokenRes.id, "type": chatType, "message": message, "date": new Date(), "unRead": 1 }]
+        })
+    }
 }
 
 // 获取聊天记录
