@@ -7,7 +7,7 @@ var GroupSchema = new mongoose.Schema({
     imgUrl: String,		                                                       //群头像
     time: { type: Date, default: Date.now() },								   //创建时间
     notice: { type: String, default: "暂无公告" },								//公告
-    group_list: [
+    user_list: [
         { user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, nickName: String, }
     ]
 });
