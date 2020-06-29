@@ -61,6 +61,22 @@ exports.create = async data => {
     return new_group
 }
 
+// 获取群详情
+exports.groupInfo = async data => {
+    let { id, token } = data
+    let tokenRes = verifyToken(token)
+    let group = await Group.findById(id).populate("user_list.user", "avatars")
+    let user_list = group.user_list
+    let index = user_list.findIndex(item => {
+        return tokenRes.id == item.user._id
+    })
+    let nickName = user_list[index].nickName
+    return {
+        group,
+        nickName
+    }
+}
+
 // 获取群列表
 exports.getList = async data => {
     let { token } = data
