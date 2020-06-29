@@ -7,8 +7,9 @@ const { verifyToken } = require("../tool/token")
 // 创建群组
 exports.create = async data => {
     let { token, name, imgUrl, user_list } = data
-    user_list = user_list.split(",")
     let tokenRes = verifyToken(token)
+    user_list = user_list.split(",")
+    user_list.push(tokenRes.id)
     let g_n = await GroupNumber.findOne({ name: "number" })
     if (!g_n) {
         g_n = await GroupNumber.create({
@@ -58,4 +59,19 @@ exports.create = async data => {
 
     }
     return new_group
+}
+
+// 获取群列表
+exports.getList = async data => {
+    let { token } = data
+    let tokenRes = verifyToken(token)
+    let list = await GroupList.findOne({ userID: tokenRes.id }).populate("group_list.group", ["name", "imgUrl"])
+    if (list) {
+        return list
+    } else {
+        return {
+            group_list: []
+        }
+    }
+
 }
