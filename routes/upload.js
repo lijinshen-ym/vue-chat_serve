@@ -1,5 +1,5 @@
 const { avatars, chatMsg } = require("../controllers/c_upload")
-let { create } = require("../controllers/c_group")
+const { create, modify } = require("../controllers/c_group")
 //图片路由
 module.exports = {
 
@@ -27,5 +27,13 @@ module.exports = {
         data.imgUrl = "http://localhost:3000/groupImg/" + ctx.req.file.filename
         let res = await create(data)
         ctx.body = res
-    }
+    },
+
+    //修改群组头像
+    "POST /upload/group/modify": async ctx => {
+        let data = ctx.req.body
+        data.imgUrl = "http://localhost:3000/groupImg/" + ctx.req.file.filename
+        let res = await modify(data)
+        ctx.body = res
+    },
 }

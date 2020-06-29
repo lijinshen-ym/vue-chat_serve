@@ -9,7 +9,7 @@ exports.create = async data => {
     let { token, name, imgUrl, user_list } = data
     let tokenRes = verifyToken(token)
     user_list = user_list.split(",")
-    user_list.push(tokenRes.id)
+    user_list.unshift(tokenRes.id)
     let g_n = await GroupNumber.findOne({ name: "number" })
     if (!g_n) {
         g_n = await GroupNumber.create({
@@ -74,6 +74,23 @@ exports.groupInfo = async data => {
     return {
         group,
         nickName
+    }
+}
+
+// 修改群头像
+exports.modify = async data => {
+    let { id, imgUrl } = data
+    let res = await Group.updateOne({ _id: id }, { $set: { imgUrl } })
+    if (res.nModified) {
+        return {
+            status: 1,
+            msg: "修改成功"
+        }
+    } else {
+        return {
+            status: 0,
+            msg: "修改失败"
+        }
     }
 }
 
