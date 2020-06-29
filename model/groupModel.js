@@ -1,23 +1,16 @@
 const mongoose = require("mongoose")
-
-// 群用户表
-var GroupUserSchema = new mongoose.Schema({
-    userID: { type: Schema.Types.ObjectId, ref: 'User' },	//用户id
-    name: { type: String },								//群内名称
-    tip: { type: Number, default: 0 },						//未读消息数
-    time: { type: Date },								    //加入时间
-    shield: { type: Number },								//是否屏蔽群消息（0不屏蔽，1屏蔽）
-});
-
 //群表
 var GroupSchema = new mongoose.Schema({
-    userID: { type: Schema.Types.ObjectId, ref: 'User' },	//用户id
-    name: { type: String },								//群名称
-    imgUrl: { type: String, default: 'group.png' },		//群头像
-    time: { type: Date },								    //创建时间
-    notice: { type: String },								//公告
-    children: [GroupUserSchema]
+    manager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },            //群主
+    number: Number,	                                                           //群号码 
+    name: String,								                               //群名称
+    imgUrl: String,		                                                       //群头像
+    time: { type: Date, default: Date.now() },								   //创建时间
+    notice: { type: String, default: "暂无公告" },								//公告
+    group_list: [
+        { user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, nickName: String, }
+    ]
 });
 
 
-module.exports = mongoose.model("Group", GroupSchema);
+module.exports = mongoose.model("group", GroupSchema);
