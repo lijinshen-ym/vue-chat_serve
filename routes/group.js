@@ -1,7 +1,8 @@
 let { create,
     getList,
     groupInfo,
-    modifyInfo } = require("../controllers/c_group")
+    modifyInfo,
+    addMember } = require("../controllers/c_group")
 module.exports = {
     //创建群列表
     "POST /group/creat": async ctx => {
@@ -24,6 +25,12 @@ module.exports = {
     // 修改群名称
     "POST /group/name": async ctx => {
         let res = await modifyInfo(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 添加群成员
+    "POST /group/member/add": async ctx => {
+        let res = await addMember(ctx.request.body)
         ctx.body = res
     }
 

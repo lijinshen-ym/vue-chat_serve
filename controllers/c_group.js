@@ -138,3 +138,20 @@ exports.modifyInfo = async data => {
     }
 
 }
+
+// 添加群成员
+exports.addMember = async data => {
+    let { id, list } = data
+    let oldList = []
+    let list_result = await Promise.all(list.map(async item => {
+        let user = await User.findOne({ _id: item })
+        let obj = { user: item, nickName: user.name }
+        oldList.push(obj)
+        return item
+    }))
+    let group = await Group.findById(id)
+    let user_list = group.user_list
+    let newList = [...user_list, ...oldList]
+    let res = await Group.updateOne({ _id: id }, { $set: { user_list: newList } })
+    return res
+}
