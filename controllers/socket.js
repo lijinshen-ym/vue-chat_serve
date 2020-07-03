@@ -51,23 +51,6 @@ module.exports = (io, socket) => {
         io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id })
     })
 
-    // //发送图片
-    // socket.on("sendFile", data => {
-    //     io.emit("sendFileAll", data)
-    // })
 
-    // // 用户断开连接的时候
-    // socket.on('disconnect', () => {
-    //     // 把当前用户的信息从users中删除掉
-    //     let idx = users.findIndex(item => item.userName === socket.userName)
-    //     // 删除掉断开连接的这个人
-    //     users.splice(idx, 1)
-    //     // 1. 告诉所有人，有人离开了聊天室
-    //     io.emit('delUser', {
-    //         userName: socket.userName,
-    //         avatar: socket.avatar
-    //     })
-    //     // 2. 告诉所有人，userList发生更新
-    //     io.emit('userList', users)
-    // })
+
 }

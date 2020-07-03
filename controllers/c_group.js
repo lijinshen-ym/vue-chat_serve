@@ -108,3 +108,33 @@ exports.getList = async data => {
     }
 
 }
+
+
+// 修改群信息
+exports.modifyInfo = async data => {
+    let { id, name, nickName, token, notice } = data
+    let key = null
+    let value = null
+    if (name || notice) {
+        if (name) {
+            key = "name"
+            value = name
+        } else {
+            key = "notice"
+            value = notice
+        }
+        let res = await Group.updateOne({ _id: id }, { $set: { [key]: value } })
+        return res
+    } else if (nickName) {
+        let tokenRes = verifyToken(token)
+        let group = await Group.findById(id)
+        let user_list = group.user_list
+        let index = user_list.findIndex(item => {
+            return item.user == tokenRes.id
+        })
+        user_list[index].nickName = nickName
+        let res = await Group.updateOne({ _id: id }, { $set: { user_list } })
+        return res
+    }
+
+}

@@ -3,7 +3,7 @@ const multer = require('koa-multer')
 
 //关于上传文件的配置 需要安装koa-multer
 var storage = multer.diskStorage({
-    //文件保存路径 public/userImg/
+    //文件保存路径由前端传递过来 savePath
     destination: function (req, file, cb) {
         let { savePath } = req.body
         cb(null, savePath)
