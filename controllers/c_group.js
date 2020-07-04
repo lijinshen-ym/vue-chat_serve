@@ -149,9 +149,86 @@ exports.addMember = async data => {
         oldList.push(obj)
         return item
     }))
+    // 群组创建成功后将该群添加到群成员的群列表中
+    let promise_res = await Promise.all(list.map(async item => {
+        gl = await GroupList.findOne({ userID: item })
+        if (gl) {
+            group_list = gl.group_list
+            group_list.push({
+                group: id
+            })
+            gl_res = await GroupList.updateOne({ userID: item }, { $set: { group_list } })
+        } else {
+            gl_res = await GroupList.create({
+                userID: item,
+                group_list: [
+                    { group: id }
+                ]
+            })
+        }
+    }))
     let group = await Group.findById(id)
     let user_list = group.user_list
     let newList = [...user_list, ...oldList]
     let res = await Group.updateOne({ _id: id }, { $set: { user_list: newList } })
     return res
+}
+
+// 退出群聊
+exports.exit = async data => {
+    let { id, token } = data
+    let tokenRes = verifyToken(token)
+    let group = await Group.findById(id)
+    let user_list = group.user_list
+    let index = user_list.findIndex(item => {
+        return item.user == tokenRes.id
+    })
+    user_list.splice(index, 1)
+    let res = await Group.updateOne({ _id: id }, { $set: { user_list } })
+
+    // 将该群添加到邀请的好友群列表中
+    let group_list = await GroupList.findOne({ userID: tokenRes.id })
+    let list = group_list.group_list
+    let g_index = list.findIndex(item => {
+        return item.group == id
+    })
+    list.splice(g_index, 1)
+    let result = await GroupList.updateOne({ userID: tokenRes.id }, { $set: { group_list: list } })
+    console.log(res, result)
+    return res
+}
+
+//转让群主
+exports.transfer = async data => {
+    let { id, manager } = data
+    console.log(manager)
+    let res = await Group.updateOne({ _id: id }, { $set: { manager } })
+    let group = await Group.findById(id)
+
+    //以下操作是将群主放在user_list的首位 
+    let user_list = group.user_list
+    let index = user_list.findIndex(item => {
+        return item.user == manager
+    })
+    let old_manager = user_list.splice(index, 1)
+    console.log(old_manager)
+    let new_manager = {
+        user: old_manager[0].user,
+        nickName: old_manager[0].nickName
+    }
+    console.log(new_manager)
+    user_list.unshift(new_manager)
+    let result = await Group.updateOne({ _id: id }, { $set: { user_list } })
+
+    return res
+}
+
+// 管理群成员
+exports.management = async data => {
+
+}
+
+// 解散群聊
+exports.dissolve = async data => {
+
 }

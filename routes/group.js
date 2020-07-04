@@ -2,7 +2,9 @@ let { create,
     getList,
     groupInfo,
     modifyInfo,
-    addMember } = require("../controllers/c_group")
+    addMember,
+    exit,
+    transfer } = require("../controllers/c_group")
 module.exports = {
     //创建群列表
     "POST /group/creat": async ctx => {
@@ -32,6 +34,28 @@ module.exports = {
     "POST /group/member/add": async ctx => {
         let res = await addMember(ctx.request.body)
         ctx.body = res
+    },
+
+    // 退出群聊
+    "POST /group/member/exit": async ctx => {
+        let res = await exit(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 转让群主
+    "POST /group/transfer": async ctx => {
+        let res = await transfer(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 解散群聊
+    "POST /group/dissolve": async ctx => {
+
+    },
+
+    // 管理全成员
+    "POST /group/management": async ctx => {
+
     }
 
 }
