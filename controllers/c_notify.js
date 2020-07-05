@@ -6,7 +6,7 @@ exports.getNotice = async data => {
     let tokenRes = verifyToken(token)
     let res = await Notify.findOne({ userID: tokenRes.id })
     if (res && res.notify_list.length > 0) {
-        let result = await Notify.findOne({ userID: tokenRes.id }).populate("notify_list.user")
+        let result = await Notify.findOne({ userID: tokenRes.id }).populate("notify_list.operaUser")
         return result
     } else {
         return {}

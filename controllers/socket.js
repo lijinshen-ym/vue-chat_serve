@@ -2,7 +2,12 @@ const { verifyToken } = require("../tool/token")
 const userSocket = require("../model/usersocket")
 const User = require("../model/userModel")
 const { saveChat } = require("../controllers/c_chat")
-module.exports = (io, socket) => {
+
+
+exports.detail = (io, socket) => {
+    // 将io 和socket保存到全局变量中
+    global.io = io
+    global.socket = socket
     // 登陆连接
     socket.on("submit", async (data) => {
         let { id } = verifyToken(data)
@@ -16,7 +21,6 @@ module.exports = (io, socket) => {
             })
         }
     })
-
 
     // 发送好友申请
     socket.on("sendDemand", async data => {
@@ -50,7 +54,9 @@ module.exports = (io, socket) => {
         let socketUser = await userSocket.findOne({ userId: id })
         io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id })
     })
-
-
-
 }
+
+// exports.inform = (name, list) => {
+//     console.log(name, list)
+//     console.log(global.io, global.socket)
+// }

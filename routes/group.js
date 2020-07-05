@@ -4,7 +4,9 @@ let { create,
     modifyInfo,
     addMember,
     exit,
-    transfer } = require("../controllers/c_group")
+    transfer,
+    management,
+    dissolve } = require("../controllers/c_group")
 module.exports = {
     //创建群列表
     "POST /group/creat": async ctx => {
@@ -50,12 +52,14 @@ module.exports = {
 
     // 解散群聊
     "POST /group/dissolve": async ctx => {
-
+        let res = await dissolve(ctx.request.body)
+        ctx.body = res
     },
 
-    // 管理全成员
+    // 管理群成员
     "POST /group/management": async ctx => {
-
+        let res = await management(ctx.request.body)
+        ctx.body = res
     }
 
 }

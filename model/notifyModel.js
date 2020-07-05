@@ -1,9 +1,14 @@
 const mongoose = require("mongoose")
 
+//             genre: "group",
+//             name: name,
+//             operaUser,
+//             operation: opera,
+//             date: new Date()
 const notifySchema = new mongoose.Schema({
     userID: String,	//用户id
     notify_list: [
-        { "user": { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, "message": String, "genre": String, unRead: { type: Boolean, default: false }, "date": { type: Date, default: Date.now() } }
+        { "operaUser": { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, "operation": String, "genre": String, name: { type: String, default: null }, unRead: { type: Boolean, default: false }, "date": { type: Date, default: Date.now() } }
     ],
 })
 module.exports = mongoose.model("notify", notifySchema);

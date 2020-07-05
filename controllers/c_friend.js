@@ -92,13 +92,12 @@ exports.deal = async data => {
     let tokenRes = verifyToken(token)
     // 通知
     let notifyRes = await Notify.findOne({ userID: applyId })
-    let msg = operation == "agree" ? "同意了你的好友申请" : "拒绝了你的好友"
     let notifyResult = null
     if (notifyRes) {
         // 更新通知表
         notifyResult = await Notify.update({
             "userID": applyId
-        }, { $push: { "notify_list": { "user": tokenRes.id, "message": msg, "genre": "application", "unRead": false, "date": new Date() } } })
+        }, { $push: { "notify_list": { "operaUser": tokenRes.id, "operation": operation, "genre": "application", "unRead": false, "date": new Date() } } })
     } else {
         // 创建通知表
         notifyResult = await Notify.create({
