@@ -52,7 +52,7 @@ exports.detail = (io, socket) => {
             let res = await saveChat(data)
         }
         let socketUser = await userSocket.findOne({ userId: id })
-        io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id })
+        io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id, type: "private" })
     })
 }
 

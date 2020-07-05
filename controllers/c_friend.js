@@ -102,7 +102,7 @@ exports.deal = async data => {
         // 创建通知表
         notifyResult = await Notify.create({
             userID: applyId,
-            notify_list: [{ "user": tokenRes.id, "message": msg, "type": "application", "genre": "Application", "unRead": false, "date": new Date() }]
+            notify_list: [{ "operaUser": tokenRes.id, "operation": operation, "genre": "application", "unRead": false, "date": new Date() }]
         })
     }
     // 关于好友表的操作

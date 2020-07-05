@@ -9,13 +9,14 @@ exports.saveChat = async data => {
     let tokenRes = verifyToken(token)
     let tokenChat = await Chat.findOne({ fromUser: tokenRes.id, toUser: id })
     let chatRes = ""
+    // 存储到token用户的聊天表中
     if (tokenChat) {
         chatRes = await Chat.updateOne({
             fromUser: tokenRes.id, toUser: id
         }, {
             $push: {
                 msg_list:
-                    { msg: message, type, belong: "my", date: new Date() }
+                    { msg: message, type, belong: tokenRes.id, date: new Date() }
             }
         })
     } else {
@@ -23,10 +24,11 @@ exports.saveChat = async data => {
             fromUser: tokenRes.id,
             toUser: id,
             msg_list: [
-                { msg: message, type, belong: "my", date: new Date() }
+                { msg: message, type, belong: tokenRes.id, date: new Date() }
             ]
         })
     }
+    // 存储到好友的聊天表中
     let idChat = await Chat.findOne({ fromUser: id, toUser: tokenRes.id })
     if (idChat) {
         chatRes = await Chat.updateOne({
@@ -34,7 +36,7 @@ exports.saveChat = async data => {
         }, {
             $push: {
                 msg_list:
-                    { msg: message, type, belong: "friend", date: new Date() }
+                    { msg: message, type, belong: tokenRes.id, date: new Date() }
             }
         })
     } else {
@@ -42,7 +44,7 @@ exports.saveChat = async data => {
             fromUser: id,
             toUser: tokenRes.id,
             msg_list: [
-                { msg: message, type, belong: "friend", date: new Date() }
+                { msg: message, type, belong: tokenRes.id, date: new Date() }
             ]
 
         })
@@ -103,26 +105,29 @@ exports.saveChat = async data => {
 
 // 获取聊天记录
 exports.history = async data => {
-    let { token, id } = data
-    let tokenRes = verifyToken(token)
-    let tokenChat = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
-    let friend = await Friend.findOne({ userID: tokenRes.id })
-    let index = friend.friend_list.findIndex(item => {
-        return id == item.user
-    })
-    let nickName = friend.friend_list[index].nickName
-    if (tokenChat) {
-        return {
-            tokenChat,
-            nickName
+    let { token, id, type } = data
+    if (type == "private") {
+        let tokenRes = verifyToken(token)
+        let tokenChat = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
+        let friend = await Friend.findOne({ userID: tokenRes.id })
+        let index = friend.friend_list.findIndex(item => {
+            return id == item.user
+        })
+        let nickName = friend.friend_list[index].nickName
+        if (tokenChat) {
+            return {
+                tokenChat,
+                nickName
+            }
+        } else {
+            return {
+                tokenChat: {
+                    msg_list: []
+                },
+                nickName
+            }
         }
     } else {
-        return {
-            tokenChat: {
-                msg_list: []
-            },
-            nickName
-        }
-    }
 
+    }
 }

@@ -20,5 +20,5 @@ exports.avatars = async (token, url) => {
 
 exports.chatMsg = async (data) => {
     let res = await saveChat(data)
-    return { status: 1, msg: "上传成功" }
+    return { status: 1, msg: "上传成功", type: "private" }
 }
