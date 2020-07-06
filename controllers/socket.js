@@ -2,12 +2,14 @@ const { verifyToken } = require("../tool/token")
 const userSocket = require("../model/usersocket")
 const User = require("../model/userModel")
 const { saveChat } = require("../controllers/c_chat")
+const Group = require("../model/groupModel")
 
 
 exports.detail = (io, socket) => {
-    // 将io 和socket保存到全局变量中
+    // 将io和socket保存到全局变量中
     global.io = io
     global.socket = socket
+
     // 登陆连接
     socket.on("submit", async (data) => {
         let { id } = verifyToken(data)
@@ -45,18 +47,24 @@ exports.detail = (io, socket) => {
 
     //发送信息
     socket.on("sendMsg", async data => {
-        let { id, token, type } = data
+        let { id, token, type, chatType } = data
         let tokenRes = verifyToken(token)
         if (type == "text") {
             // 存储聊天记录
             let res = await saveChat(data)
         }
-        let socketUser = await userSocket.findOne({ userId: id })
-        io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id, type: "private" })
+        if (chatType == "private") { //私聊通知
+            let socketUser = await userSocket.findOne({ userId: id })
+            io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id, type: "private" })
+        } else { //群聊通知
+            let group = await Group.findById(id)
+            let user_list = group.user_list
+            // 通知用户更新信息
+            let result = await Promise.all(user_list.map(async item => {
+                let socketUser = await userSocket.findOne({ userId: item.user })
+                global.io.to(socketUser.socketId).emit("updateChat", { id, type: "group" })
+                return item
+            }))
+        }
     })
 }
-
-// exports.inform = (name, list) => {
-//     console.log(name, list)
-//     console.log(global.io, global.socket)
-// }

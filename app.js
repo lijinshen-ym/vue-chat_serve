@@ -16,7 +16,7 @@ const { upload } = require("./tool/multer")
 const server = require('http').Server(app.callback());  //koa正确姿势
 const io = require('socket.io')(server); //核心，实现客户端之间交互通信
 
-// socket处理逻辑
+// socket.io处理逻辑
 const { detail } = require("./controllers/socket")
 
 
@@ -45,7 +45,6 @@ for (let key in routesData) {
 }
 
 // socket.io
-
 io.on("connection", socket => {
     detail(io, socket)
 })

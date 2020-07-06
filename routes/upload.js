@@ -1,4 +1,4 @@
-const { avatars, chatMsg } = require("../controllers/c_upload")
+const { avatars, chatMsg, groupMsg } = require("../controllers/c_upload")
 const { create, modify } = require("../controllers/c_group")
 //图片路由
 module.exports = {
@@ -11,8 +11,8 @@ module.exports = {
         ctx.body = res
     },
 
-    // 发送图片信息
-    "POST /upload/chat": async ctx => {
+    // 发送图片信息 （私聊）
+    "POST /upload/chat/private": async ctx => {
         let data = ctx.req.body
         let url = "http://localhost:3000/chatImg/" + ctx.req.file.filename
         data.message = url
@@ -20,6 +20,17 @@ module.exports = {
         let res = await chatMsg(data)
         ctx.body = res
     },
+
+    // 发送图片信息（群聊）
+    "POST /upload/chat/group": async ctx => {
+        let data = ctx.req.body
+        let url = "http://localhost:3000/groupImg/" + ctx.req.file.filename
+        data.message = url
+        data.type = "image"
+        let res = await groupMsg(data)
+        ctx.body = res
+    },
+
 
     // 创建群组上传群组头像
     "POST /upload/group": async ctx => {

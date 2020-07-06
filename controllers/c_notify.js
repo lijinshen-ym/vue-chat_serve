@@ -1,6 +1,7 @@
 const Notify = require("../model/notifyModel")
 const { verifyToken } = require("../tool/token")
 
+// 获取通知
 exports.getNotice = async data => {
     let { token } = data
     let tokenRes = verifyToken(token)
@@ -13,6 +14,7 @@ exports.getNotice = async data => {
     }
 }
 
+// 将未读通知标为已读
 exports.readNotice = async data => {
     let { token, id } = data
     let tokenRes = verifyToken(token)
@@ -31,6 +33,8 @@ exports.readNotice = async data => {
         return { status: 1, msg: "操作失败" }
     }
 }
+
+// 删除通知
 exports.deleteNotice = async data => {
     let { token, id } = data
     let tokenRes = verifyToken(token)
@@ -46,4 +50,4 @@ exports.deleteNotice = async data => {
     } else {
         return { status: 0, msg: "操作失败" }
     }
-}
+} 
