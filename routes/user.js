@@ -18,8 +18,6 @@ module.exports = {
     "POST /user/modify": async ctx => {
         let res = await modify(ctx.request.body)
         ctx.body = res
-
-
     },
     // 查找用户
     "GET /user/find": async ctx => {

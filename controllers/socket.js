@@ -1,5 +1,5 @@
 const { verifyToken } = require("../tool/token")
-const userSocket = require("../model/usersocket")
+const userSocket = require("../model/userSocketModel")
 const User = require("../model/userModel")
 const { saveChat } = require("../controllers/c_chat")
 const Group = require("../model/groupModel")

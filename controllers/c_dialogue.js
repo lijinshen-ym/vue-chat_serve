@@ -1,6 +1,7 @@
 const Dialogue = require("../model/dialogueModel")
 const Friend = require("../model/friendModel")
 const { verifyToken } = require("../tool/token")
+const Group = require("../model/groupModel")
 exports.dialogueList = async data => {
     let { token } = data
     let tokenRes = verifyToken(token)
@@ -18,7 +19,9 @@ exports.dialogueList = async data => {
                 item.avatars = friend.user.avatars
                 item.name = friend.nickName
             } else { //是群聊则寻找群组信息
-
+                let result = await Group.findById(item.id)
+                item.avatars = result.imgUrl
+                item.name = result.name
             }
             return item
         }))

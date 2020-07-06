@@ -5,11 +5,13 @@ const Group = require("../model/groupModel")
 const Friend = require("../model/friendModel")
 const Dialogue = require("../model/dialogueModel")
 const User = require("../model/userModel")
+const userSocket = require("../model/userSocketModel")
 
 // 存储聊天记录
 exports.saveChat = async data => {
     let { id, message, token, type, chatType } = data
     let tokenRes = verifyToken(token)
+    let user = await User.findById(tokenRes.id)
     if (chatType == "private") { //私聊
         let tokenChat = await Chat.findOne({ fromUser: tokenRes.id, toUser: id })
         let chatRes = ""
@@ -122,6 +124,45 @@ exports.saveChat = async data => {
                 "msg_list": [{ "msg": message, "type": type, "belong": tokenRes.id, "date": new Date() }]
             })
         }
+        if (chatRes.nModified) {
+            // 更新对话信息
+            let dialogRes = null
+            let group = await Group.findById(id)
+            let user_list = group.user_list
+            let newMessage = user.name + "：" + message
+            let mapRes = await Promise.all(user_list.map(async item => {
+                let dialogToken = await Dialogue.findOne({ userID: item.user })
+                if (dialogToken) {
+                    let chat_list = dialogToken.chat_list
+                    let index = chat_list.findIndex(item => {
+                        return item.id == id
+                    })
+                    if (index >= 0) {
+                        chat_list[index].message = newMessage
+                        chat_list[index].date = new Date()
+                        chat_list[index].msgType = type
+                        if (tokenRes.id != item.user) {
+                            chat_list[index].unRead = chat_list[index].unRead + 1
+                        }
+                        dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
+                    } else {
+                        chat_list.push({
+                            id, from: user.name, type: chatType, msgType: type, message: newMessage, date: new Date(), unRead: 0
+                        })
+                        dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
+                    }
+                } else {
+                    dialogRes = await Dialogue.create({
+                        "userID": item.user,
+                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": newMessage, "date": new Date(), "unRead": 0 }]
+                    })
+                }
+                let socketUser = await userSocket.findOne({ userId: item.user })
+                global.io.to(socketUser.socketId).emit("updateDialog")
+                return item
+            }))
+
+        }
 
     }
 
@@ -144,10 +185,13 @@ exports.history = async data => {
                 name
             }
         } else {
+            chats = await Chat.create({
+                fromUser: tokenRes.id,
+                toUser: id,
+                msg_list: []
+            })
             return {
-                chats: {
-                    msg_list: []
-                },
+                chats,
                 name
             }
         }
@@ -166,6 +210,7 @@ exports.history = async data => {
             let name = chats.groupID.name
             return {
                 chats: {
+                    groupID: id,
                     msg_list
                 },
                 name
@@ -175,6 +220,7 @@ exports.history = async data => {
             let name = group.name
             return {
                 chats: {
+                    groupID: id,
                     msg_list: []
                 },
                 name

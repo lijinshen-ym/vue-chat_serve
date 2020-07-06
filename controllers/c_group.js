@@ -3,7 +3,7 @@ const User = require("../model/userModel")
 const GroupNumber = require("../model/numberModel")
 const GroupList = require("../model/groupListModel")
 const { verifyToken } = require("../tool/token")
-const userSocket = require("../model/usersocket")
+const userSocket = require("../model/userSocketModel")
 const Notify = require("../model/notifyModel")
 
 // 创建群组

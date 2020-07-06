@@ -1,7 +1,7 @@
 const { verifyToken } = require("../tool/token")
 const User = require("../model/userModel")
 const { saveChat } = require("../controllers/c_chat")
-const userSocket = require("../model/usersocket")
+const userSocket = require("../model/userSocketModel")
 const Group = require("../model/groupModel")
 
 // 修改用户头像
