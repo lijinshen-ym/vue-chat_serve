@@ -1,4 +1,4 @@
-const { avatars, chatMsg, groupMsg } = require("../controllers/c_upload")
+const { avatars, chatMsg, groupMsg, publish } = require("../controllers/c_upload")
 const { create, modify } = require("../controllers/c_group")
 //图片路由
 module.exports = {
@@ -31,7 +31,6 @@ module.exports = {
         ctx.body = res
     },
 
-
     // 创建群组上传群组头像
     "POST /upload/group": async ctx => {
         let data = ctx.req.body
@@ -46,5 +45,12 @@ module.exports = {
         data.imgUrl = "http://localhost:3000/groupImg/" + ctx.req.file.filename
         let res = await modify(data)
         ctx.body = res
+    },
+
+    // 上传朋友圈图片
+    "POST /upload/dynamic": async ctx => {
+        // let data = ctx.req.body 
+        let imgUrl = "http://localhost:3000/dynamicImg/" + ctx.req.file.filename
+        ctx.body = imgUrl
     },
 }

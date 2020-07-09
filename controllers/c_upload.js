@@ -1,8 +1,9 @@
-const { verifyToken } = require("../tool/token")
-const User = require("../model/userModel")
-const { saveChat } = require("../controllers/c_chat")
 const userSocket = require("../model/userSocketModel")
 const Group = require("../model/groupModel")
+const User = require("../model/userModel")
+
+const { saveChat } = require("../controllers/c_chat")
+const { verifyToken } = require("../tool/token")
 
 // 修改用户头像
 exports.avatars = async (token, url) => {
@@ -44,7 +45,11 @@ exports.groupMsg = async (data) => {
         global.io.to(socketUser.socketId).emit("updateChat", { id: data.id, type: "group" })
         return item
     }))
+    return { status: 1, msg: "上传成功", type: "private" }
+}
 
+// 用户发表动态
+exports.publish = async (data) => {
 
     return { status: 1, msg: "上传成功", type: "private" }
 }

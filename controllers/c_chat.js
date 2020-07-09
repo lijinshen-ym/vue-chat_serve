@@ -141,6 +141,7 @@ exports.saveChat = async data => {
                         chat_list[index].message = newMessage
                         chat_list[index].date = new Date()
                         chat_list[index].msgType = type
+                        chat_list[index].from = user.name
                         if (tokenRes.id != item.user) {
                             chat_list[index].unRead = chat_list[index].unRead + 1
                         }
