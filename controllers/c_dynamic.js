@@ -79,3 +79,28 @@ exports.giveALike = async data => {
     return {}
 }
 
+// 评论
+exports.comment = async data => {
+    let { token, id, date, toUser, toName, content } = data
+    let tokenRes = verifyToken(token)
+    let user = await User.findById(tokenRes.id)
+    let idDynamic = await Dynamic.findOne({ userID: id })
+    let logList = idDynamic.logList
+    let index = logList.findIndex(item => {
+        return new Date(item.date).getTime() == new Date(date).getTime()
+    })
+    logList[index].comments.push({
+        fromUser: user._id,
+        fromName: user.name,
+        toUser,
+        toName,
+        content,
+    })
+    let res = await Dynamic.updateOne({ userID: id }, { $set: { logList } })
+    if (res.nModified == 1) {
+        return { status: 1, msg: "评论成功" }
+    } else {
+        return { status: 0, msg: "评论失败" }
+    }
+
+}
