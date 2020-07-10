@@ -1,12 +1,15 @@
 const Dynamic = require("../model/dynamicModel")
 const Friend = require("../model/friendModel")
 const Social = require("../model/socialModel")
+const User = require("../model/userModel")
 
 const { verifyToken } = require("../tool/token")
 
+// 发布动态
 exports.published = async data => {
     let { token, text, imgList, comments, like, date, address } = data
     let tokenRes = verifyToken(token)
+    // 添加到我的动态表中
     let tokenDynamic = await Dynamic.findOne({ userID: tokenRes.id })
     if (tokenDynamic) {
         let logList = tokenDynamic.logList
@@ -23,6 +26,7 @@ exports.published = async data => {
         })
     }
     if (res.userID || res.nModified == 1) {
+        // 添加到我的动态表中成功后添加到朋友圈表中（我和好友的朋友圈）
         let friends = await Friend.findOne({ userID: tokenRes.id })
         let friend_list = friends.friend_list
         friend_list.push({
@@ -52,3 +56,26 @@ exports.published = async data => {
     }
 
 }
+
+// 点赞
+exports.giveALike = async data => {
+    let { token, id, date } = data
+    let tokenRes = verifyToken(token)
+    let user = await User.findById(tokenRes.id)
+    let idDynamic = await Dynamic.findOne({ userID: id })
+    let logList = idDynamic.logList
+    let index = logList.findIndex(item => {
+        return new Date(item.date).getTime() == new Date(date).getTime()
+    })
+    let likeIndex = logList[index].like.findIndex(item2 => {
+        return item2.id.toString() == user._id.toString()
+    })
+    if (likeIndex > -1) {
+        logList[index].like.splice(likeIndex, 1)
+    } else {
+        logList[index].like.unshift({ id: user._id, nickName: null })
+    }
+    let res = await Dynamic.updateOne({ userID: id }, { $set: { logList } })
+    return {}
+}
+
