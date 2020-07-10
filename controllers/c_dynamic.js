@@ -1,6 +1,6 @@
 const Dynamic = require("../model/dynamicModel")
 const Friend = require("../model/friendModel")
-const FDList = require("../model/friendsDynamicModel")
+const Social = require("../model/socialModel")
 
 const { verifyToken } = require("../tool/token")
 
@@ -8,19 +8,16 @@ exports.published = async data => {
     let { token, text, imgList, comments, like, date, address } = data
     let tokenRes = verifyToken(token)
     let tokenDynamic = await Dynamic.findOne({ userID: tokenRes.id })
-    let res = null
-    let index = 0
     if (tokenDynamic) {
-        let dynamicList = tokenDynamic.dynamicList
-        dynamicList.push({
+        let logList = tokenDynamic.logList
+        logList.unshift({
             text, imgList, comments, like, date, address
         })
-        index = dynamicList.length - 1
-        res = await Dynamic.updateOne({ userID: tokenRes.id }, { $set: { dynamicList } })
+        res = await Dynamic.updateOne({ userID: tokenRes.id }, { $set: { logList } })
     } else {
         res = await Dynamic.create({
             userID: tokenRes.id,
-            dynamicList: [{
+            logList: [{
                 text, imgList, comments, like, date, address
             }]
         })
@@ -33,18 +30,18 @@ exports.published = async data => {
             nickName: ""
         })
         let result = await Promise.all(friend_list.map(async item => {
-            let d_list = await FDList.findOne({ userID: item.user })
+            let d_list = await Social.findOne({ userID: item.user })
             if (d_list) {
                 let dynamicList = d_list.dynamicList
-                dynamicList.push({
-                    friend: tokenRes.id, index,
+                dynamicList.unshift({
+                    friend: tokenRes.id, date,
                 })
-                let d_res = await FDList.updateOne({ userID: item.user }, { $set: { dynamicList } })
+                let d_res = await Social.updateOne({ userID: item.user }, { $set: { dynamicList } })
             } else {
-                let d_res = await FDList.create({
+                let d_res = await Social.create({
                     userID: item.user,
                     dynamicList: [
-                        { friend: tokenRes.id, index }
+                        { friend: tokenRes.id, date }
                     ]
                 })
             }
