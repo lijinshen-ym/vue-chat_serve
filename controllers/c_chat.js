@@ -124,13 +124,13 @@ exports.saveChat = async data => {
                 "msg_list": [{ "msg": message, "type": type, "belong": tokenRes.id, "date": new Date() }]
             })
         }
-        if (chatRes.nModified) {
+        if (chatRes.groupID || chatRes.nModified) {
             // 更新对话信息
-            let dialogRes = null
             let group = await Group.findById(id)
             let user_list = group.user_list
             let newMessage = user.name + "：" + message
             let mapRes = await Promise.all(user_list.map(async item => {
+                let dialogRes = null
                 let dialogToken = await Dialogue.findOne({ userID: item.user })
                 if (dialogToken) {
                     let chat_list = dialogToken.chat_list
@@ -147,19 +147,21 @@ exports.saveChat = async data => {
                         }
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     } else {
-                        chat_list.push({
-                            id, from: user.name, type: chatType, msgType: type, message: newMessage, date: new Date(), unRead: 0
+                        chat_list.unshift({
+                            id, from: user.name, type: chatType, msgType: type, message: newMessage, date: new Date(), unRead: 1
                         })
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     }
                 } else {
                     dialogRes = await Dialogue.create({
                         "userID": item.user,
-                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": newMessage, "date": new Date(), "unRead": 0 }]
+                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": newMessage, "date": new Date(), "unRead": 1 }]
                     })
                 }
-                let socketUser = await userSocket.findOne({ userId: item.user })
-                global.io.to(socketUser.socketId).emit("updateDialog")
+                // if (dialogRes.userID || dialogRes.nModified > 0) {
+                //     let socketUser = await userSocket.findOne({ userId: item.user })
+                //     global.io.to(socketUser.socketId).emit("updateDialog")
+                // }
                 return item
             }))
 

@@ -56,6 +56,8 @@ exports.detail = (io, socket) => {
         if (chatType == "private") { //私聊通知
             let socketUser = await userSocket.findOne({ userId: id })
             io.to(socketUser.socketId).emit("updateChat", { id: tokenRes.id, type: "private" })
+            socketUser = await userSocket.findOne({ userId: tokenRes.id })
+            io.to(socketUser.socketId).emit("updateDialog", { id: id, type: "private" })
         } else { //群聊通知
             let group = await Group.findById(id)
             let user_list = group.user_list

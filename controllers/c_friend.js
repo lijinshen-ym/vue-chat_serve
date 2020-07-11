@@ -233,7 +233,7 @@ exports.deleteFriend = async data => {
     let tokenFriend = await Friend.findOne({ userID: tokenRes.id })
     let friend_list = tokenFriend.friend_list
     let index = friend_list.findIndex(item => {
-        return item._id == id
+        return item.user == id
     })
     friend_list.splice(index, 1)
     let modifyResult = await Friend.update({ userID: tokenRes.id }, { $set: { friend_list: friend_list } })
@@ -242,7 +242,7 @@ exports.deleteFriend = async data => {
     let idFriend = await Friend.findOne({ userID: id })
     friend_list = idFriend.friend_list
     index = friend_list.findIndex(item => {
-        return item._id == tokenRes.id
+        return item.user == tokenRes.id
     })
     friend_list.splice(index, 1)
     let idResult = await Friend.update({ userID: id }, { $set: { friend_list: friend_list } })
@@ -253,7 +253,7 @@ exports.deleteFriend = async data => {
     if (dialogToken) {
         let chat_list = dialogToken.chat_list
         let index = chat_list.findIndex(item => {
-            return item.id == id
+            return item.userID == id
         })
         chat_list.splice(index, 1)
         dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
@@ -262,7 +262,7 @@ exports.deleteFriend = async data => {
     if (dialogID) {
         let chat_list = dialogID.chat_list
         let index = chat_list.findIndex(item => {
-            return item.id == tokenRes.id
+            return item.userID == tokenRes.id
         })
         chat_list.splice(index, 1)
         dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })

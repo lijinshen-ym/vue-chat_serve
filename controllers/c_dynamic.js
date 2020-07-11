@@ -122,6 +122,7 @@ exports.giveALike = async data => {
                         logDate: date,
                         type: "like",
                         content: null,
+                        text: logList[index].text,
                         unRead: false,
                         id
                     }
@@ -138,6 +139,7 @@ exports.giveALike = async data => {
                         logDate: date,
                         type: "like",
                         content: null,
+                        text: logList[index].text,
                         unRead: false,
                         id
                     }]
@@ -194,6 +196,7 @@ exports.comment = async data => {
                     logDate: date,
                     type: "comment",
                     content,
+                    text: logList[index].text,
                     unRead: false,
                     id
                 }
@@ -210,6 +213,7 @@ exports.comment = async data => {
                     logDate: date,
                     type: "comment",
                     content,
+                    text: logList[index].text,
                     unRead: false,
                     id
                 }]

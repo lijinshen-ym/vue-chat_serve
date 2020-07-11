@@ -26,7 +26,7 @@ exports.readNotice = async data => {
         }
         return item
     })
-    let modifyResult = await Notify.update({ userID: tokenRes.id }, { $set: { notify_list: notify_list } })
+    let modifyResult = await Notify.updateOne({ userID: tokenRes.id }, { $set: { notify_list: notify_list } })
     if (modifyResult.nModified) {
         return { status: 1, msg: "操作成功" }
     } else {
