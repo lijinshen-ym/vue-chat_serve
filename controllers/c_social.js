@@ -6,7 +6,7 @@ const User = require("../model/userModel")
 const { verifyToken } = require("../tool/token")
 
 exports.acquire = async data => {
-    let { token } = data
+    let { token, page, limit } = data
     let tokenRes = verifyToken(token)
     let social = await Social.findOne({ userID: tokenRes.id })
     let tokenUser = await User.findById(tokenRes.id)
@@ -17,11 +17,18 @@ exports.acquire = async data => {
                 dynamicList
             }
         } else {
+            let count = dynamicList.length
+            let maxPage = Math.ceil(count / limit)
+            if (page > maxPage) {
+                return []
+            }
+            let skip = (page - 1) * limit
+            let spliceDynamicList = dynamicList.splice(skip, limit)
             let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
             if (result) {
                 let friend_list = result.friend_list
                 let oldDynamicList = []
-                let mapRes = await Promise.all(dynamicList.map(async item => {
+                let mapRes = await Promise.all(spliceDynamicList.map(async item => {
                     let obj = {}
                     let index = friend_list.findIndex(item2 => { //在好友表中查找并获取好友信息（昵称和用户头像）
                         return item2.user._id == item.friend
@@ -74,7 +81,7 @@ exports.acquire = async data => {
                             item6.fromName = tokenUser.name
                             isFriends1 = true
                         }
-                        if (item6.toUser == tokenRes.id) {
+                        if (item6.toUser == tokenRes.id) { //是token用户自身
                             item6.toUser == tokenUser.name
                             isFriends2 = true
                         }
@@ -84,16 +91,12 @@ exports.acquire = async data => {
                                 item6.fromName = item7.nickName
                                 isFriends1 = true
                             }
-                            return item7
-                        })
-                        friend_list.map(item8 => { //判断被回复者的好友关系
-                            if (item8.user._id.toString() == item6.toUser.toString()) {
-                                item6.toName = item8.nickName
+                            if (item7.user._id.toString() == item6.toUser.toString()) {
+                                item6.toName = item7.nickName
                                 isFriends2 = true
                             }
-                            return item8
+                            return item7
                         })
-                        console.log(isFriends2, isFriends1)
                         if (isFriends1 && isFriends2) {//当两个人与token用户都是好友关系时才显示
                             comments.push(item6)
                         }

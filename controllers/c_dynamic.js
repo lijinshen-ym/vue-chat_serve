@@ -2,6 +2,8 @@ const Dynamic = require("../model/dynamicModel")
 const Friend = require("../model/friendModel")
 const Social = require("../model/socialModel")
 const User = require("../model/userModel")
+const DyNotify = require("../model/dyNotifyModel")
+const userSocket = require("../model/userSocketModel")
 
 const { verifyToken } = require("../tool/token")
 
@@ -9,6 +11,7 @@ const { verifyToken } = require("../tool/token")
 exports.published = async data => {
     let { token, text, imgList, comments, like, date, address } = data
     let tokenRes = verifyToken(token)
+    let user = await User.findById(tokenRes.id)
     // 添加到我的动态表中
     let tokenDynamic = await Dynamic.findOne({ userID: tokenRes.id })
     if (tokenDynamic) {
@@ -26,14 +29,15 @@ exports.published = async data => {
         })
     }
     if (res.userID || res.nModified == 1) {
-        // 添加到我的动态表中成功后添加到朋友圈表中（我和好友的朋友圈）
+
         let friends = await Friend.findOne({ userID: tokenRes.id })
         let friend_list = friends.friend_list
-        friend_list.push({
+        friend_list.push({  //将token用户也添加到好友表中
             user: tokenRes.id,
             nickName: ""
         })
         let result = await Promise.all(friend_list.map(async item => {
+            // 添加到我的动态表中成功后添加到朋友圈表中（我和好友的朋友圈）
             let d_list = await Social.findOne({ userID: item.user })
             if (d_list) {
                 let dynamicList = d_list.dynamicList
@@ -49,7 +53,40 @@ exports.published = async data => {
                     ]
                 })
             }
+
+            // 添加到好友新动态通知表中
+            if (item.user != tokenRes.id) {
+                let dy = await DyNotify.findOne({ userID: item.user })
+                if (dy) {
+                    let notify_list = dy.notify_list
+                    notify_list[0] = {
+                        formUser: user._id,
+                        fromImg: user.avatars
+                    }
+                    let d_res = await DyNotify.updateOne({ userID: item.user }, { $set: { notify_list } })
+                } else {
+                    let d_res = await DyNotify.create({
+                        userID: item.user,
+                        notify_list: [
+                            {
+                                ormUser: user._id,
+                                fromImg: user.avatars
+                            }
+                        ]
+                    })
+                }
+                let socketUser = await userSocket.findOne({ userId: item.user })
+                global.io.to(socketUser.socketId).emit("getDyNotify")
+            }
         }))
+
+
+
+
+
+
+
+
         return { status: 1, msg: "发布成功" }
     } else {
         return { status: 0, msg: "发布失败" }
