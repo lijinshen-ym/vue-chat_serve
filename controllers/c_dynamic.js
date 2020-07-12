@@ -176,11 +176,16 @@ exports.comment = async data => {
     if (res.nModified == 1) {
         // 添加到通知表
         let arr = []
-        if (toUser == id) {  //当toUser和id相同时，只需通知一个人(动态的主人)
+        if (toUser == id && user._id != id) {  //当toUser和id相同时并且fromUser和id不同时，只需通知一个人(动态的主人)
+            // console.log("第一种情况")
             arr = [{ to: id, id: tokenRes.id, name: user.name }]
         } else if (user._id == id && toUser != id) { //当fromUser和id相同而toUser不同时，只需通知一个人（toUser）
+            // console.log("第二种情况", toName)
             arr = [{ to: toUser, id: tokenRes.id, name: user.name }]
+        } else if (toUser == id && user._id == id) {
+            // console.log("第三种情况")
         } else { //不同时，则需要通知两个人
+            // console.log("第四种情况")
             arr = [{ to: id, id: tokenRes.id, name: user.name }, { to: toUser, id: tokenRes.id, name: user.name }]
         }
         let pro_result = await Promise.all(arr.map((async item => {
@@ -220,6 +225,7 @@ exports.comment = async data => {
                 result = await ComNotify.create({ userID: item.to, notify_list })
             }
             if (result.userID || result.nModified > 0) {
+                console.log(item.to)
                 let socketUser = await userSocket.findOne({ userId: item.to })
                 global.io.to(socketUser.socketId).emit("getComNotify")
             }
@@ -343,7 +349,7 @@ exports.acquire = async data => {
         }))
         // 排序（因为以上map遍历以及内嵌了await 导致执行顺序会乱）
         function listSort(a, b) {
-            return new Date(b.log.date).getTime() - new Date(a.log.date).getTime()
+            return new Date(b.date).getTime() - new Date(a.date).getTime()
         }
         let newLogList = oldLogList.sort(listSort)
         return { logList: newLogList, avatars: obj.avatars, name: obj.nickName }
@@ -351,4 +357,44 @@ exports.acquire = async data => {
         return { logList: [], avatars: obj.avatars, name: obj.nickName }
     }
 
+}
+
+// 删除动态
+exports.deleteDynamic = async data => {
+    let { token, date } = data
+    let tokenRes = verifyToken(token)
+    let tokenDynamic = await Dynamic.findOne({ userID: tokenRes.id })
+
+    // 从动态表中删除该动态
+    let logList = tokenDynamic.logList
+    let index = logList.findIndex(item => {
+        return new Date(item.date).getTime() == new Date(date).getTime()
+    })
+    logList.splice(index, 1)
+
+    let res = await Dynamic.updateOne({ userID: tokenRes.id }, { $set: { logList } })
+
+    let friends = await Friend.findOne({ userID: tokenRes.id })
+    if (friends) {
+        let friend_list = friends.friend_list
+        if (friend_list.length > 0) {
+            let result = await Promise.all(friend_list.map(async item => {
+                let social = await Social.findOne({ userID: item.user })
+                let dynamicList = social.dynamicList
+                let index = dynamicList.findIndex(item2 => {
+                    return item2.friend.toString() == tokenRes.id.toString() && new Date(item2.date).getTime() == new Date(date).getTime()
+                })
+                console.log(index)
+                if (index > -1) {
+                    dynamicList.splice(index, 1)
+                    let updateSocial = await Social.updateOne({ userID: item.user }, { $set: { dynamicList } })
+                }
+            }))
+        }
+    }
+    if (res.nModified > 0) {
+        return { status: 1, msg: "删除成功" }
+    } else {
+        return { status: 0, msg: "删除失败" }
+    }
 }
