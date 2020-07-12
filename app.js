@@ -39,7 +39,7 @@ for (let key in routesData) {
     method = method.toLowerCase()
     if (url.includes("/upload")) {  //处理上传文件的路由(单个文件)
         router[method](url, upload.single('file'), routesData[key])
-        // 多文件上传
+        // 多文件上传 (注意：小程序是不支持多文件上传的)
         // router[method](url, upload.array('avatar', 9), routesData[key])
     } else { //处理普通路由
         router[method](url, routesData[key])

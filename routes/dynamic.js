@@ -1,4 +1,4 @@
-const { published, giveALike, comment } = require("../controllers/c_dynamic")
+const { published, giveALike, comment, acquire } = require("../controllers/c_dynamic")
 
 module.exports = {
     // 发布动态
@@ -16,6 +16,12 @@ module.exports = {
     // 评论
     "POST /dynamic/comment": async ctx => {
         let res = await comment(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 获取个人动态
+    "GET /dynamic/acquire": async ctx => {
+        let res = await acquire(ctx.request.query)
         ctx.body = res
     }
 }

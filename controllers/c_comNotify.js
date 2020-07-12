@@ -60,4 +60,4 @@ exports.update = async data => {
     } else {
         return { status: 0, msg: "更新失败" }
     }
-}
+} 

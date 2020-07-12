@@ -230,3 +230,125 @@ exports.comment = async data => {
     }
 
 }
+
+// 获取个人动态
+exports.acquire = async data => {
+    let { token, id, page, limit } = data
+    let tokenRes = verifyToken(token)
+    let tokenUser = await User.findById(tokenRes.id)
+    let obj = {}
+    let result = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", "avatars")
+    let friend_list = []
+    if (result) {
+        friend_list = result.friend_list
+    }
+    if (tokenRes.id == id) {//是用户自己
+        obj.avatars = tokenUser.avatars
+        obj.id = tokenUser._id
+        obj.nickName = tokenUser.name
+    } else { //是好友
+        let index = friend_list.findIndex(item => { //在好友表中查找并获取好友信息（昵称和用户头像）
+            return item.user._id == id
+        })
+        if (index > -1) {
+            let friend = friend_list[index]
+            obj.avatars = friend.user.avatars
+            obj.id = friend.user._id
+            obj.nickName = friend.nickName
+        }
+    }
+    let res = await Dynamic.findOne({ userID: id })
+    if (res) {
+        let logList = res.logList
+        let count = logList.length
+        let maxPage = Math.ceil(count / limit)
+        if (page > maxPage) {
+            return { logList: [], avatars: obj.avatars, name: obj.nickName }
+        }
+        let skip = (page - 1) * limit
+        let spliceLogList = logList.splice(skip, limit)
+
+        let oldLogList = []
+        let mapRes = await Promise.all(spliceLogList.map(async item => {
+            let like = [] //存储点赞里是好友关系的用户
+            // 遍历点赞，在朋友中寻找，不是好友关系则屏蔽
+            item.like.map(item4 => {
+                if (item4.id == tokenRes.id) { //是token用户自身
+                    item4.nickName = tokenUser.name
+                    like.push(item4)
+                } else { //不是token用户自身则从好友列表中查找
+                    friend_list.map(item5 => {
+                        if (item5.user._id.toString() == item4.id.toString()) {
+                            item4.nickName = item5.nickName
+                            like.push(item4)
+                        }
+                        return item5
+                    })
+                }
+                return item4
+            })
+            item.like = like
+
+            let comments = [] //存储评论里是好友关系的用户
+            // 遍历评论，在朋友中寻找，不是好友关系则屏蔽
+            item.comments.map(item6 => {
+                // 下面两个变量是为了确定回复者和被回复者与token用户是否是好友关系
+                let isFriends1 = false
+                let isFriends2 = false
+
+                if (item6.fromUser == tokenRes.id) { //是token用户自身
+                    item6.fromName = tokenUser.name
+                    isFriends1 = true
+                }
+                if (item6.toUser == tokenRes.id) { //是token用户自身
+                    item6.toUser == tokenUser.name
+                    isFriends2 = true
+                }
+                if (isFriends1 != true || isFriends2 != true) {
+                    friend_list.map(item7 => { //判断回复者的好友关系
+                        if (item7.user._id.toString() == item6.fromUser.toString()) {
+                            item6.fromName = item7.nickName
+                            isFriends1 = true
+                        }
+                        if (item7.user._id.toString() == item6.toUser.toString()) {
+                            item6.toName = item7.nickName
+                            isFriends2 = true
+                        }
+                        return item7
+                    })
+                }
+                if (isFriends1 && isFriends2) {//当两个人与token用户都是好友关系时才显示
+                    comments.push(item6)
+                }
+                return item6
+            })
+            item.comments = comments
+            let newObj = {
+                avatars: obj.avatars,
+                id: obj.id,
+                nickName: obj.nickName,
+                text: item.text,
+                imgList: item.imgList,
+                comments: item.comments,
+                like: item.like,
+                date: item.date,
+                address: item.address,
+                _id: item._id,
+            }
+            // let newObj = Object.assign(obj, item)
+            // console.log(newObj)
+            oldLogList.push(newObj)
+            // console.log(newDynamicList)
+            return item
+        }))
+        // 排序（因为以上map遍历以及内嵌了await 导致执行顺序会乱）
+        function listSort(a, b) {
+            return new Date(b.log.date).getTime() - new Date(a.log.date).getTime()
+        }
+        let newLogList = oldLogList.sort(listSort)
+        return { logList: newLogList, avatars: obj.avatars, name: obj.nickName }
+    } else {
+        return { logList: [], avatars: obj.avatars, name: obj.nickName }
+    }
+
+}

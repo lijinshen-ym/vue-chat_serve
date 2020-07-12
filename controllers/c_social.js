@@ -30,20 +30,22 @@ exports.acquire = async data => {
                 let oldDynamicList = []
                 let mapRes = await Promise.all(spliceDynamicList.map(async item => {
                     let obj = {}
-                    let index = friend_list.findIndex(item2 => { //在好友表中查找并获取好友信息（昵称和用户头像）
-                        return item2.user._id == item.friend
-                    })
-
-                    if (index > -1) { //是好友
-                        let friend = friend_list[index]
-                        obj.avatars = friend.user.avatars
-                        obj.id = friend.user._id
-                        obj.nickName = friend.nickName
-                    } else {//是用户自己
+                    if (item.friend == tokenRes.id) {//是用户自己
                         obj.avatars = tokenUser.avatars
                         obj.id = tokenUser._id
                         obj.nickName = tokenUser.name
+                    } else { //是好友
+                        let index = friend_list.findIndex(item2 => { //在好友表中查找并获取好友信息（昵称和用户头像）
+                            return item2.user._id == item.friend
+                        })
+                        if (index > -1) {
+                            let friend = friend_list[index]
+                            obj.avatars = friend.user.avatars
+                            obj.id = friend.user._id
+                            obj.nickName = friend.nickName
+                        }
                     }
+
                     let f_dynamic = await Dynamic.findOne({ userID: item.friend })
                     let logIndex = f_dynamic.logList.findIndex(item3 => { //查找动态
                         // 根据时间查找
@@ -86,17 +88,20 @@ exports.acquire = async data => {
                             isFriends2 = true
                         }
 
-                        friend_list.map(item7 => { //判断回复者的好友关系
-                            if (item7.user._id.toString() == item6.fromUser.toString()) {
-                                item6.fromName = item7.nickName
-                                isFriends1 = true
-                            }
-                            if (item7.user._id.toString() == item6.toUser.toString()) {
-                                item6.toName = item7.nickName
-                                isFriends2 = true
-                            }
-                            return item7
-                        })
+                        if (isFriends1 != true || isFriends2 != true) {
+                            friend_list.map(item7 => { //判断回复者的好友关系
+                                if (item7.user._id.toString() == item6.fromUser.toString()) {
+                                    item6.fromName = item7.nickName
+                                    isFriends1 = true
+                                }
+                                if (item7.user._id.toString() == item6.toUser.toString()) {
+                                    item6.toName = item7.nickName
+                                    isFriends2 = true
+                                }
+                                return item7
+                            })
+                        }
+
                         if (isFriends1 && isFriends2) {//当两个人与token用户都是好友关系时才显示
                             comments.push(item6)
                         }
