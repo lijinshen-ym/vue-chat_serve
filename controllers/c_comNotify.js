@@ -52,7 +52,11 @@ exports.update = async data => {
     let res = await ComNotify.findOne({ userID: tokenRes.id })
     let notify_list = res.notify_list
     for (let i = 0; i < notify_list.length; i++) {
-        notify_list[i].unRead = true
+        if (notify_list[i].unRead) {
+            break
+        } else {
+            notify_list[i].unRead = true
+        }
     }
     let result = await ComNotify.updateOne({ userID: tokenRes.id }, { $set: { notify_list } })
     if (result.nModified > 0) {

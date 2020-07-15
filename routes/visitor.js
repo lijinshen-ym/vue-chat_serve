@@ -1,4 +1,4 @@
-let { record, acquire, remove } = require("../controllers/c_visitor")
+let { record, acquire, remove, update } = require("../controllers/c_visitor")
 
 module.exports = {
     // 记录访客
@@ -16,6 +16,12 @@ module.exports = {
     // 移除访客
     "POST /visitor/remove": async ctx => {
         let res = await remove(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 更新新访客数量
+    "POST /visitor/update": async ctx => {
+        let res = await update(ctx.request.body)
         ctx.body = res
     }
 }
