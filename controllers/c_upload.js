@@ -24,6 +24,7 @@ exports.avatars = async (token, url) => {
 
 // 处理用户发送的图片信息(私聊)
 exports.chatMsg = async (data) => {
+    data.chatType = "private"
     let res = await saveChat(data)
     let userToken = verifyToken(data.token)
     let socketUser = await userSocket.findOne({ userId: data.id })
@@ -34,8 +35,9 @@ exports.chatMsg = async (data) => {
     return { status: 1, msg: "上传成功", type: "private" }
 }
 
-// 处理用户发送的图片信息(私聊)
+// 处理用户发送的图片信息(群聊)
 exports.groupMsg = async (data) => {
+    data.chatType = "group"
     let res = await saveChat(data)
     let group = await Group.findById(data.id)
     let user_list = group.user_list

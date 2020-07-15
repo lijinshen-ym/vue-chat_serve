@@ -225,7 +225,6 @@ exports.comment = async data => {
                 result = await ComNotify.create({ userID: item.to, notify_list })
             }
             if (result.userID || result.nModified > 0) {
-                console.log(item.to)
                 let socketUser = await userSocket.findOne({ userId: item.to })
                 global.io.to(socketUser.socketId).emit("getComNotify")
             }
@@ -252,15 +251,20 @@ exports.acquire = async data => {
         obj.avatars = tokenUser.avatars
         obj.id = tokenUser._id
         obj.nickName = tokenUser.name
-    } else { //是好友
+    } else {
         let index = friend_list.findIndex(item => { //在好友表中查找并获取好友信息（昵称和用户头像）
             return item.user._id == id
         })
-        if (index > -1) {
+        if (index > -1) { //是好友
             let friend = friend_list[index]
             obj.avatars = friend.user.avatars
             obj.id = friend.user._id
             obj.nickName = friend.nickName
+        } else {
+            let idUser = await User.findById(id)
+            obj.avatars = idUser.avatars
+            obj.id = id
+            obj.nickName = idUser.name
         }
     }
     let res = await Dynamic.findOne({ userID: id })
@@ -384,7 +388,6 @@ exports.deleteDynamic = async data => {
                 let index = dynamicList.findIndex(item2 => {
                     return item2.friend.toString() == tokenRes.id.toString() && new Date(item2.date).getTime() == new Date(date).getTime()
                 })
-                console.log(index)
                 if (index > -1) {
                     dynamicList.splice(index, 1)
                     let updateSocial = await Social.updateOne({ userID: item.user }, { $set: { dynamicList } })
