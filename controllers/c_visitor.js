@@ -34,9 +34,6 @@ exports.record = async data => {
             unRead: false
         })
         result = await Visitor.updateOne({ userID: id }, { $set: { count, visitors } })
-        if (result.nModified) {
-            console.log("更新了")
-        }
     } else {
         result = await Visitor.create({
             userID: id,

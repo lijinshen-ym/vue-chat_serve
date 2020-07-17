@@ -165,7 +165,7 @@ exports.comment = async data => {
     let index = logList.findIndex(item => {
         return new Date(item.date).getTime() == new Date(date).getTime()
     })
-    logList[index].comments.push({
+    logList[index].comments.unshift({
         fromUser: user._id,
         fromName: user.name,
         toUser,
