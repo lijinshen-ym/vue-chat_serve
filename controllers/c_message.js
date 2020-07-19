@@ -2,6 +2,7 @@ const Message = require("../model/messageModel")
 const User = require("../model/userModel")
 const Friend = require("../model/friendModel")
 const MessNotify = require("../model/messNotifyModel")
+const userSocket = require("../model/userSocketModel")
 
 const { verifyToken } = require("../tool/token")
 
@@ -54,7 +55,6 @@ exports.published = async data => {
                     unRead: false
                 })
                 resNotify = await MessNotify.updateOne({ userID: id }, { $set: { notify_list } })
-                console.log
             } else {
                 resNotify = await MessNotify.create({
                     userID: id,
@@ -67,6 +67,11 @@ exports.published = async data => {
                         unRead: false
                     }]
                 })
+            }
+            if (resNotify.userID || resNotify.nModified > 0) {
+                console.log("woshiliuyan")
+                socketUser = await userSocket.findOne({ userId: id })
+                io.to(socketUser.socketId).emit("message")
             }
         }
         return { status: 1, msg: "发表成功" }
@@ -220,6 +225,10 @@ exports.reply = async data => {
                     unRead: false
                 }]
             })
+        }
+        if (resNotify.userID || resNotify.nModified > 0) {
+            socketUser = await userSocket.findOne({ userId: id })
+            io.to(socketUser.socketId).emit("message")
         }
         return { status: 1, msg: "回复成功" }
     }

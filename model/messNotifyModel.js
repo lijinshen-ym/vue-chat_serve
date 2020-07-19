@@ -4,7 +4,7 @@ const mongoose = require("mongoose")
 const messNotifySchema = new mongoose.Schema({
     userID: String,	//用户id
     notify_list: [],
-    // { "user": { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, content: String, "nickName": String, type: String, date: Date }
+    // { "user": id, content: String, "nickName": String, type: String, date: Date ,unRead:true||false}
     //type:"message"||"reply"
 })
 module.exports = mongoose.model("messNotify", messNotifySchema);
