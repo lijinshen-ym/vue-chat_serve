@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 
+// 动态表
 const dynamicSchema = new mongoose.Schema({
     userID: { type: mongoose.Schema.Types.ObjectId, ref: "user" },	//用户id
     logList: [

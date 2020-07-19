@@ -1,6 +1,6 @@
 
 const mongoose = require("mongoose")
-
+// 聊天表
 const chatSchema = new mongoose.Schema({
     fromUser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     toUser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

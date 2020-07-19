@@ -4,7 +4,6 @@ const User = require("../model/userModel")
 const { saveChat } = require("../controllers/c_chat")
 const Group = require("../model/groupModel")
 
-
 exports.detail = (io, socket) => {
     // 将io和socket保存到全局变量中
     global.io = io

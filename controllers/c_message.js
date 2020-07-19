@@ -1,6 +1,7 @@
 const Message = require("../model/messageModel")
 const User = require("../model/userModel")
 const Friend = require("../model/friendModel")
+const MessNotify = require("../model/messNotifyModel")
 
 const { verifyToken } = require("../tool/token")
 
@@ -34,7 +35,40 @@ exports.published = async data => {
 
         })
     }
+
+
+
     if (result.userID || result.nModified) {
+        if (tokenRes.id !== id) {
+            // 成功发表留言后将该留言存储在留言通知表中
+            let res = await MessNotify.findOne({ userID: id })
+            let resNotify = null
+            if (res) {
+                let notify_list = res.notify_list
+                notify_list.unshift({
+                    user: tokenRes.id,
+                    content,
+                    nickName: null,
+                    type: "message",
+                    date: new Date(),
+                    unRead: false
+                })
+                resNotify = await MessNotify.updateOne({ userID: id }, { $set: { notify_list } })
+                console.log
+            } else {
+                resNotify = await MessNotify.create({
+                    userID: id,
+                    notify_list: [{
+                        user: tokenRes.id,
+                        content,
+                        nickName: null,
+                        type: "message",
+                        date: new Date(),
+                        unRead: false
+                    }]
+                })
+            }
+        }
         return { status: 1, msg: "发表成功" }
     } else {
         return { stats: 0, msg: "发表失败" }
@@ -76,7 +110,7 @@ exports.acquire = async data => {
                     obj.children = []
                     if (item.user._id.toString() == tokenRes.id) {
                         obj.nickName = user.name
-                        item.children.map(item3 => {
+                        item.children.map(item3 => {//遍历回复
                             if (item3.user.toString() == tokenRes.id.toString()) {
                                 obj.children.push({
                                     user: item3.user,
@@ -101,7 +135,7 @@ exports.acquire = async data => {
                         })
                         if (index > -1) {
                             obj.nickName = friend_list[index].nickName
-                            item.children.map(item3 => {
+                            item.children.map(item3 => { //遍历回复
                                 if (item3.user.toString() == tokenRes.id.toString()) {
                                     obj.children.push({
                                         user: item3.user,
@@ -122,7 +156,6 @@ exports.acquire = async data => {
                             newMessage.push(obj)
                         }
                     }
-
                 })
                 return {
                     messages: newMessage,
@@ -138,7 +171,7 @@ exports.acquire = async data => {
 
 // 回复留言
 exports.reply = async data => {
-    let { token, id, messageID, date, content } = data
+    let { token, id, messageID, message, date, content } = data
     let tokenRes = verifyToken(token)
     let idMessage = await Message.findOne({ userID: id })
     let messages = idMessage.messages
@@ -152,6 +185,42 @@ exports.reply = async data => {
     })
     let result = await Message.updateOne({ userID: id }, { $set: { messages } })
     if (result.nModified > 0) {
+        let toUser = null              //一条留言只能空间所属用户和留言用户可以回复信息
+        if (tokenRes.id == messageID) { //当token用户和留言用户(messageID)是同一个人时,则toUser就是id(空间用户)
+            toUser = id
+        } else {//当token用户和留言用户（messageID）不是同一个人时,则toUser就是messageID(留言用户)
+            toUser = messageID
+        }
+        // 成功发表留言后将该留言存储在留言通知表中
+        let res = await MessNotify.findOne({ userID: toUser })
+        let resNotify = null
+        if (res) {
+            let notify_list = res.notify_list
+            notify_list.unshift({
+                user: tokenRes.id,
+                content,
+                nickName: null,
+                type: "reply",
+                date: new Date(),
+                message,
+                unRead: false
+            })
+            resNotify = await MessNotify.updateOne({ userID: toUser }, { $set: { notify_list } })
+            console.log
+        } else {
+            resNotify = await MessNotify.create({
+                userID: toUser,
+                notify_list: [{
+                    user: tokenRes.id,
+                    content,
+                    nickName: null,
+                    type: "reply",
+                    date: new Date(),
+                    message,
+                    unRead: false
+                }]
+            })
+        }
         return { status: 1, msg: "回复成功" }
     }
 }

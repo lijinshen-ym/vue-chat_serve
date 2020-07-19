@@ -1,6 +1,6 @@
 
 const mongoose = require("mongoose")
-
+// 聊天表
 const groupChatSchema = new mongoose.Schema({
     groupID: { type: mongoose.Schema.Types.ObjectId, ref: "group" },
     msg_list: []

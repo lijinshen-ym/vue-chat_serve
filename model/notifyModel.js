@@ -5,6 +5,7 @@ const mongoose = require("mongoose")
 //             operaUser,
 //             operation: opera,
 //             date: new Date()
+// 通知表（好友申请等）
 const notifySchema = new mongoose.Schema({
     userID: String,	//用户id
     notify_list: [

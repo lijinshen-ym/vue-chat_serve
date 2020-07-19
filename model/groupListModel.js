@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-
+// 群列表
 const listSchema = new mongoose.Schema({
     userID: String,	//用户id
     group_list: [

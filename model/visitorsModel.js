@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 
+// 访问表
 const visitorsSchema = new mongoose.Schema({
     userID: String,	//用户id
     count: Number,

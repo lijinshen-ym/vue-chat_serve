@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-
+// 好友申请表
 const applySchema = new mongoose.Schema({
     userID: String,	//用户id
     applyList: [

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+// 用户表
 const userSchema = new mongoose.Schema({
     name: String,
     email: String,
