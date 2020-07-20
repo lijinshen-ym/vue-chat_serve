@@ -77,7 +77,8 @@ exports.acquire = async data => {
 
                         let comments = [] //存储评论里是好友关系的用户
                         // 遍历评论，在朋友中寻找，不是好友关系则屏蔽
-                        log.comments.map(item6 => {
+                        for (let i = 0; i < log.comments.length; i++) {
+                            let item6 = log.comments[i]
                             // 下面两个变量是为了确定回复者和被回复者与token用户是否是好友关系
                             let isFriends1 = false
                             let isFriends2 = false
@@ -108,9 +109,9 @@ exports.acquire = async data => {
                             if (isFriends1 && isFriends2) {//当两个人与token用户都是好友关系时才显示
                                 comments.push(item6)
                             }
-                            return item6
-                        })
-                        log.comments = comments
+                        }
+                        obj.comCount = comments.length //评论的条数
+                        log.comments = comments.splice(0, 5) //截取返回
                         obj.log = log
                         oldDynamicList.push(obj)
                     }

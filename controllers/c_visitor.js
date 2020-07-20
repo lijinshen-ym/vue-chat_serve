@@ -45,11 +45,10 @@ exports.record = async data => {
             }],
             count: 1
         })
-        console.log("我创建了")
     }
     if (result.nModified || result.userID) {
         socketUser = await userSocket.findOne({ userId: id })
-        io.to(socketUser.socketId).emit("newVisitor")
+        io.to(socketUser.socketId).emit("refreshVisitor")
         return { status: 1, msg: "记录成功" }
     } else {
         return { status: 0, msg: "记录失败" }

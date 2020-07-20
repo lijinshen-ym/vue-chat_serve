@@ -1,4 +1,4 @@
-const { published, giveALike, comment, acquire, deleteDynamic } = require("../controllers/c_dynamic")
+const { published, giveALike, comment, acquire, deleteDynamic, singleDynamic } = require("../controllers/c_dynamic")
 
 module.exports = {
     // 发布动态
@@ -28,6 +28,12 @@ module.exports = {
     // 删除动态
     "POST /dynamic/delete": async ctx => {
         let res = await deleteDynamic(ctx.request.body)
+        ctx.body = res
+    },
+
+    // 获取单条个人动态
+    "GET /dynamic/single": async ctx => {
+        let res = await singleDynamic(ctx.request.query)
         ctx.body = res
     }
 }

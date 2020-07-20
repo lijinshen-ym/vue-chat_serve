@@ -69,7 +69,6 @@ exports.published = async data => {
                 })
             }
             if (resNotify.userID || resNotify.nModified > 0) {
-                console.log("woshiliuyan")
                 socketUser = await userSocket.findOne({ userId: id })
                 io.to(socketUser.socketId).emit("message")
             }

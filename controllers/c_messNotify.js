@@ -101,8 +101,8 @@ exports.remove = async data => {
     notify_list.splice(index, 1)
     let result = await MessNotify.updateOne({ userID: tokenRes.id }, { $set: { notify_list } })
     if (result.nModified > 0) {
-        return { status: 1, msg: "更新成功" }
+        return { status: 1, msg: "删除成功" }
     } else {
-        return { status: 0, msg: "更新失败" }
+        return { status: 0, msg: "删除失败" }
     }
 }

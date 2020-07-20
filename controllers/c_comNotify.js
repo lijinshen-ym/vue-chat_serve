@@ -33,7 +33,7 @@ exports.obtain = async data => {
                         item.fromName = friend.nickName
                     }
                     if (friend.user == item.toUser) {
-                        item.toUser = friend.nickName
+                        item.toName = friend.nickName
                     }
                 })
                 list.push(item)
@@ -64,4 +64,22 @@ exports.update = async data => {
     } else {
         return { status: 0, msg: "更新失败" }
     }
-} 
+}
+
+// 删除留言通知表
+exports.remove = async data => {
+    let { token, fromUser, date } = data
+    let tokenRes = verifyToken(token)
+    let res = await ComNotify.findOne({ userID: tokenRes.id })
+    let notify_list = res.notify_list
+    let index = notify_list.findIndex(item => {
+        return item.fromUser == fromUser && new Date(item.date).getTime() == new Date(date).getTime()
+    })
+    notify_list.splice(index, 1)
+    let result = await ComNotify.updateOne({ userID: tokenRes.id }, { $set: { notify_list } })
+    if (result.nModified > 0) {
+        return { status: 1, msg: "删除成功" }
+    } else {
+        return { status: 0, msg: "删除失败" }
+    }
+}
