@@ -2,6 +2,8 @@ const Dialogue = require("../model/dialogueModel")
 const Friend = require("../model/friendModel")
 const { verifyToken } = require("../tool/token")
 const Group = require("../model/groupModel")
+
+// 获取聊天列表
 exports.dialogueList = async data => {
     let { token } = data
     let tokenRes = verifyToken(token)
@@ -29,6 +31,7 @@ exports.dialogueList = async data => {
     return arr
 }
 
+// 更新聊天列表
 exports.updateUnRead = async data => {
     let { token, id } = data
     let tokenRes = verifyToken(token)
@@ -42,6 +45,30 @@ exports.updateUnRead = async data => {
             chat_list[index].unRead = 0
             let dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
             return dialogRes
+        }
+    }
+}
+
+// 删除聊天列表
+exports.remove = async data => {
+    let { token, id } = data
+    let tokenRes = verifyToken(token)
+    let res = await Dialogue.findOne({ "userID": tokenRes.id })
+    let chat_list = res.chat_list
+    let index = chat_list.findIndex(item => {
+        return id == item.id
+    })
+    chat_list.splice(index, 1)
+    let result = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { chat_list } })
+    if (result.nModified > 0) {
+        return {
+            status: 1,
+            msg: "删除成功"
+        }
+    } else {
+        return {
+            status: 0,
+            msg: "删除失败"
         }
     }
 }

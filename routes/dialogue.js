@@ -1,4 +1,4 @@
-const { dialogueList, updateUnRead } = require("../controllers/c_dialogue")
+const { dialogueList, updateUnRead, remove } = require("../controllers/c_dialogue")
 module.exports = {
     // 获取会话表
     "GET /dialogue/list": async ctx => {
@@ -8,6 +8,12 @@ module.exports = {
     // 更新会话表（未读）
     "POST /dialogue/updateUnRead": async ctx => {
         let res = await updateUnRead(ctx.request.body)
+        ctx.body = res
+    },
+
+    //移除聊天
+    "POST /dialogue/remove": async ctx => {
+        let res = await remove(ctx.request.body)
         ctx.body = res
     }
 }

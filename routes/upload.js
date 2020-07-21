@@ -6,7 +6,8 @@ module.exports = {
     // 用户头像
     "POST /upload/user": async ctx => {
         let token = ctx.req.body.token
-        let url = "http://localhost:3000/userImg/" + ctx.req.file.filename
+        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        console.log(url)
         let res = await avatars(token, url)
         ctx.body = res
     },
@@ -14,7 +15,8 @@ module.exports = {
     // 发送图片信息 （私聊）
     "POST /upload/chat/private": async ctx => {
         let data = ctx.req.body
-        let url = "http://localhost:3000/chatImg/" + ctx.req.file.filename
+        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        console.log(url)
         data.message = url
         data.type = "image"
         let res = await chatMsg(data)
@@ -24,7 +26,8 @@ module.exports = {
     // 发送图片信息（群聊）
     "POST /upload/chat/group": async ctx => {
         let data = ctx.req.body
-        let url = "http://localhost:3000/groupImg/" + ctx.req.file.filename
+        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        console.log(url)
         data.message = url
         data.type = "image"
         let res = await groupMsg(data)
@@ -34,7 +37,7 @@ module.exports = {
     // 创建群组上传群组头像
     "POST /upload/group": async ctx => {
         let data = ctx.req.body
-        data.imgUrl = "http://localhost:3000/groupImg/" + ctx.req.file.filename
+        data.imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
         let res = await create(data)
         ctx.body = res
     },
@@ -42,7 +45,7 @@ module.exports = {
     //修改群组头像
     "POST /upload/group/modify": async ctx => {
         let data = ctx.req.body
-        data.imgUrl = "http://localhost:3000/groupImg/" + ctx.req.file.filename
+        data.imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
         let res = await modify(data)
         ctx.body = res
     },
