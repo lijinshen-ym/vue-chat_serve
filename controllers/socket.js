@@ -48,7 +48,7 @@ exports.detail = (io, socket) => {
     socket.on("sendMsg", async data => {
         let { id, token, type, chatType } = data
         let tokenRes = verifyToken(token)
-        if (type == "text") {
+        if (type == "text" || type == "location") {
             // 存储聊天记录
             let res = await saveChat(data)
         }

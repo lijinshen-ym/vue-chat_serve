@@ -17,13 +17,12 @@ exports.saveChat = async data => {
         let chatRes = ""
         // 存储到token用户的聊天表中
         if (tokenChat) {
+            let msg_list = tokenChat.msg_list
+            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: tokenRes.id, toUser: id
             }, {
-                $push: {
-                    msg_list:
-                        { msg: message, type, belong: tokenRes.id, date: new Date() }
-                }
+                $set: { msg_list }
             })
         } else {
             chatRes = await Chat.create({
@@ -37,13 +36,12 @@ exports.saveChat = async data => {
         // 存储到好友的聊天表中
         let idChat = await Chat.findOne({ fromUser: id, toUser: tokenRes.id })
         if (idChat) {
+            let msg_list = idChat.msg_list
+            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: id, toUser: tokenRes.id
             }, {
-                $push: {
-                    msg_list:
-                        { msg: message, type, belong: tokenRes.id, date: new Date() }
-                }
+                $set: { msg_list }
             })
         } else {
             chatRes = await Chat.create({
@@ -70,7 +68,7 @@ exports.saveChat = async data => {
                 chat_list[index].msgType = type
                 dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
             } else {
-                chat_list.push({
+                chat_list.unshift({
                     id, type: chatType, msgType: type, message, date: new Date(), unRead: 0
                 })
                 dialogRes = await Dialogue.updateOne({ "userID": tokenRes.id }, { $set: { "chat_list": chat_list } })
@@ -95,7 +93,7 @@ exports.saveChat = async data => {
                 chat_list[index].unRead = chat_list[index].unRead + 1
                 dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
             } else {
-                chat_list.push({
+                chat_list.unshift({
                     id: tokenRes.id, type: chatType, msgType: type, message, date: new Date(), unRead: 1
                 })
                 dialogRes = await Dialogue.updateOne({ "userID": id }, { $set: { "chat_list": chat_list } })
@@ -110,13 +108,12 @@ exports.saveChat = async data => {
         let group_chat = await GroupChat.findOne({ groupID: id })
         let chatRes = null
         if (group_chat) {
+            let msg_list = group_chat.msg_list
+            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await GroupChat.updateOne({
                 groupID: id
             }, {
-                $push: {
-                    msg_list:
-                        { msg: message, type, belong: tokenRes.id, date: new Date() }
-                }
+                $set: { msg_list }
             })
         } else {
             chatRes = await GroupChat.create({
@@ -128,7 +125,6 @@ exports.saveChat = async data => {
             // 更新对话信息
             let group = await Group.findById(id)
             let user_list = group.user_list
-            let newMessage = user.name + "：" + message
             let mapRes = await Promise.all(user_list.map(async item => {
                 let dialogRes = null
                 let dialogToken = await Dialogue.findOne({ userID: item.user })
@@ -138,7 +134,7 @@ exports.saveChat = async data => {
                         return item.id == id
                     })
                     if (index >= 0) {
-                        chat_list[index].message = newMessage
+                        chat_list[index].message = message
                         chat_list[index].date = new Date()
                         chat_list[index].msgType = type
                         chat_list[index].from = user.name
@@ -148,14 +144,14 @@ exports.saveChat = async data => {
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     } else {
                         chat_list.unshift({
-                            id, from: user.name, type: chatType, msgType: type, message: newMessage, date: new Date(), unRead: 1
+                            id, from: user.name, type: chatType, msgType: type, message: message, date: new Date(), unRead: 1
                         })
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     }
                 } else {
                     dialogRes = await Dialogue.create({
                         "userID": item.user,
-                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": newMessage, "date": new Date(), "unRead": 1 }]
+                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": message, "date": new Date(), "unRead": 1 }]
                     })
                 }
                 // if (dialogRes.userID || dialogRes.nModified > 0) {
@@ -173,19 +169,48 @@ exports.saveChat = async data => {
 
 // 获取聊天记录
 exports.history = async data => {
-    let { token, id, type } = data
+    let { token, id, type, page, limit } = data
+    page ? "" : page = 1
+    limit ? "" : limit = 50
     if (type == "private") {
         let tokenRes = verifyToken(token)
         let chats = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
+
         let friend = await Friend.findOne({ userID: tokenRes.id })
         let index = friend.friend_list.findIndex(item => {
             return id == item.user
         })
         let name = friend.friend_list[index].nickName
         if (chats) {
+            let fromUser = chats.fromUser
+            let toUser = chats.toUser
+            let msg_list = chats.msg_list
+            let count = msg_list.length
+            let maxPage = Math.ceil(count / limit)
+            if (page > maxPage) {
+                return {
+                    chats: {
+                        fromUser,
+                        toUser,
+                        msg_list: []
+                    }
+                }
+            }
+            let skip = (page - 1) * limit
+            let oldList = msg_list.splice(skip, limit)
+            console.log(oldList)
+            function listSort(a, b) {
+                return new Date(a.date).getTime() - new Date(b.date).getTime()
+            }
+            let newList = oldList.sort(listSort)
             return {
-                chats,
-                name
+                chats: {
+                    fromUser,
+                    toUser,
+                    msg_list: newList,
+                },
+                name,
+                count
             }
         } else {
             chats = await Chat.create({
@@ -195,7 +220,8 @@ exports.history = async data => {
             })
             return {
                 chats,
-                name
+                name,
+                count: 0,
             }
         }
     } else {

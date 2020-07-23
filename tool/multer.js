@@ -26,8 +26,10 @@ var storage = multer.diskStorage({
         } else if (savePath == "groupImg/avatars") { //群头像
             path = "public/" + savePath + "/" + id
             req.body.savePath = savePath + "/" + id
+        } else if (savePath == "dynamicImg") { //动态
+            path = "public/" + tokenRes.id + "/" + savePath + "/" + time
+            req.body.savePath = tokenRes.id + "/" + savePath + "/" + time
         }
-        console.log(path)
         mkDirsSync(path)
         cb(null, path)
     },

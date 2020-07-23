@@ -7,7 +7,6 @@ module.exports = {
     "POST /upload/user": async ctx => {
         let token = ctx.req.body.token
         let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
-        console.log(url)
         let res = await avatars(token, url)
         ctx.body = res
     },
@@ -16,7 +15,6 @@ module.exports = {
     "POST /upload/chat/private": async ctx => {
         let data = ctx.req.body
         let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
-        console.log(url)
         data.message = url
         data.type = "image"
         let res = await chatMsg(data)
@@ -27,7 +25,6 @@ module.exports = {
     "POST /upload/chat/group": async ctx => {
         let data = ctx.req.body
         let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
-        console.log(url)
         data.message = url
         data.type = "image"
         let res = await groupMsg(data)
@@ -53,7 +50,7 @@ module.exports = {
     // 上传朋友圈图片
     "POST /upload/dynamic": async ctx => {
         // let data = ctx.req.body 
-        let imgUrl = "http://localhost:3000/dynamicImg/" + ctx.req.file.filename
+        let imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
         ctx.body = imgUrl
     },
 }
