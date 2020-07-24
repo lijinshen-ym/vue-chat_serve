@@ -18,7 +18,7 @@ exports.saveChat = async data => {
         // 存储到token用户的聊天表中
         if (tokenChat) {
             let msg_list = tokenChat.msg_list
-            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: tokenRes.id, toUser: id
             }, {
@@ -29,7 +29,7 @@ exports.saveChat = async data => {
                 fromUser: tokenRes.id,
                 toUser: id,
                 msg_list: [
-                    { msg: message, type, belong: tokenRes.id, date: new Date() }
+                    { message, type, belong: tokenRes.id, date: new Date() }
                 ]
             })
         }
@@ -37,7 +37,7 @@ exports.saveChat = async data => {
         let idChat = await Chat.findOne({ fromUser: id, toUser: tokenRes.id })
         if (idChat) {
             let msg_list = idChat.msg_list
-            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: id, toUser: tokenRes.id
             }, {
@@ -48,7 +48,7 @@ exports.saveChat = async data => {
                 fromUser: id,
                 toUser: tokenRes.id,
                 msg_list: [
-                    { msg: message, type, belong: tokenRes.id, date: new Date() }
+                    { message, type, belong: tokenRes.id, date: new Date() }
                 ]
 
             })
@@ -109,7 +109,7 @@ exports.saveChat = async data => {
         let chatRes = null
         if (group_chat) {
             let msg_list = group_chat.msg_list
-            msg_list.unshift({ msg: message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
             chatRes = await GroupChat.updateOne({
                 groupID: id
             }, {
@@ -118,7 +118,7 @@ exports.saveChat = async data => {
         } else {
             chatRes = await GroupChat.create({
                 "groupID": id,
-                "msg_list": [{ "msg": message, "type": type, "belong": tokenRes.id, "date": new Date() }]
+                "msg_list": [{ message, type, "belong": tokenRes.id, "date": new Date() }]
             })
         }
         if (chatRes.groupID || chatRes.nModified) {
@@ -154,10 +154,6 @@ exports.saveChat = async data => {
                         "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": message, "date": new Date(), "unRead": 1 }]
                     })
                 }
-                // if (dialogRes.userID || dialogRes.nModified > 0) {
-                //     let socketUser = await userSocket.findOne({ userId: item.user })
-                //     global.io.to(socketUser.socketId).emit("updateDialog")
-                // }
                 return item
             }))
 
@@ -198,7 +194,6 @@ exports.history = async data => {
             }
             let skip = (page - 1) * limit
             let oldList = msg_list.splice(skip, limit)
-            console.log(oldList)
             function listSort(a, b) {
                 return new Date(a.date).getTime() - new Date(b.date).getTime()
             }

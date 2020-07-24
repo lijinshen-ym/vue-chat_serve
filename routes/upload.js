@@ -18,6 +18,7 @@ module.exports = {
         data.message = url
         data.type = "image"
         let res = await chatMsg(data)
+        res.message = url
         ctx.body = res
     },
 
