@@ -126,6 +126,7 @@ exports.saveChat = async data => {
             let group = await Group.findById(id)
             let user_list = group.user_list
             let mapRes = await Promise.all(user_list.map(async item => {
+
                 let dialogRes = null
                 let dialogToken = await Dialogue.findOne({ userID: item.user })
                 if (dialogToken) {
@@ -168,15 +169,15 @@ exports.history = async data => {
     let { token, id, type, page, limit } = data
     page ? "" : page = 1
     limit ? "" : limit = 50
+    let tokenRes = verifyToken(token)
+    let friend = await Friend.findOne({ userID: tokenRes.id }).populate("friend_list.user", ['avatars'])
+    let friend_list = friend.friend_list
     if (type == "private") {
-        let tokenRes = verifyToken(token)
         let chats = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
-
-        let friend = await Friend.findOne({ userID: tokenRes.id })
-        let index = friend.friend_list.findIndex(item => {
+        let index = friend_list.findIndex(item => {
             return id == item.user
         })
-        let name = friend.friend_list[index].nickName
+        let name = friend_list[index].nickName
         if (chats) {
             let fromUser = chats.fromUser
             let toUser = chats.toUser
@@ -194,9 +195,6 @@ exports.history = async data => {
             }
             let skip = (page - 1) * limit
             let oldList = msg_list.splice(skip, limit)
-            function listSort(a, b) {
-                return new Date(a.date).getTime() - new Date(b.date).getTime()
-            }
             let newList = oldList.sort(listSort)
             return {
                 chats: {
@@ -220,22 +218,54 @@ exports.history = async data => {
             }
         }
     } else {
-        let chats = await GroupChat.findOne({ groupID: id }).populate("groupID")
+        let chats = await GroupChat.findOne({ groupID: id })
         if (chats) {
+            let name = chats.groupID.name
             let msg_list = chats.msg_list
             let res = await Promise.all(msg_list.map(async item => {
-                let user = await User.findById(item.belong)
-                item.user = {
-                    name: user.name,
-                    avatars: user.avatars
+                if (item.belong == tokenRes.id) {
+                    let tokenUser = await User.findById(tokenRes.id)
+                    item.user = {
+                        name: tokenUser.name,
+                        avatars: tokenUser.avatars
+                    }
+                } else {
+                    let index = friend_list.findIndex(item2 => {
+                        return item.belong == item2.user
+                    })
+                    if (index > -1) {
+                        item.user = {
+                            name: friend_list[index].nickName,
+                            avatars: friend_list[index].user.avatars
+                        }
+                    } else {
+                        let belongUser = await User.findById(item.belong)
+                        item.user = {
+                            name: belongUser.name,
+                            avatars: belongUser.avatars
+                        }
+                    }
                 }
                 return item
             }))
-            let name = chats.groupID.name
+            let count = msg_list.length
+            let maxPage = Math.ceil(count / limit)
+            if (page > maxPage) {
+                return {
+                    chats: {
+                        groupID: id,
+                        msg_list: []
+                    },
+                    name
+                }
+            }
+            let skip = (page - 1) * limit
+            let oldList = msg_list.splice(skip, limit)
+            let newList = oldList.sort(listSort)
             return {
                 chats: {
                     groupID: id,
-                    msg_list
+                    msg_list: newList
                 },
                 name
             }
@@ -251,4 +281,9 @@ exports.history = async data => {
             }
         }
     }
+}
+
+// 排序的方法
+function listSort(a, b) {
+    return new Date(a.date).getTime() - new Date(b.date).getTime()
 }

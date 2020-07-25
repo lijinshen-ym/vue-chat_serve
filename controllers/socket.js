@@ -46,23 +46,36 @@ exports.detail = (io, socket) => {
 
     //发送信息
     socket.on("sendMsg", async data => {
-        let { id, token, type, chatType } = data
+        let { id, token, type, chatType, date, message } = data
         let tokenRes = verifyToken(token)
+        let tokenUser = await User.findById(tokenRes.id)
         if (type == "text" || type == "location") {
             // 存储聊天记录
             let res = await saveChat(data)
         }
-        console.log(data)
         if (chatType == "private") { //私聊通知
             let socketUser = await userSocket.findOne({ userId: id })
-            io.to(socketUser.socketId).emit("updateChat", { belong: tokenRes.id, message: data.message, type: data.type, date: data.date })
+            io.to(socketUser.socketId).emit("updateChat", { belong: tokenRes.id, chatType, message, type, date })
         } else { //群聊通知
             let group = await Group.findById(id)
             let user_list = group.user_list
             // 通知用户更新信息
             let result = await Promise.all(user_list.map(async item => {
-                let socketUser = await userSocket.findOne({ userId: item.user })
-                global.io.to(socketUser.socketId).emit("updateChat", { id, type: "group" })
+                if (item.user != tokenRes.id) {
+                    let socketUser = await userSocket.findOne({ userId: item.user })
+                    global.io.to(socketUser.socketId).emit("updateChat", {
+                        id,
+                        chatType: "group",
+                        belong: tokenRes.id,
+                        user: {
+                            name: tokenUser.name,
+                            avatars: tokenUser.avatars
+                        },
+                        type,
+                        message,
+                        date
+                    })
+                }
                 return item
             }))
         }

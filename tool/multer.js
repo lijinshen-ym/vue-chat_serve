@@ -24,9 +24,9 @@ var storage = multer.diskStorage({
             path = "public/" + savePath + "/" + id + "/" + time
             req.body.savePath = savePath + "/" + id + "/" + time
         } else if (savePath == "groupImg/avatars") { //群头像
-            path = "public/" + savePath + "/" + id
-            req.body.savePath = savePath + "/" + id
-        } else if (savePath == "dynamicImg") { //动态
+            path = "public/" + savePath + "/"
+            req.body.savePath = savePath + "/"
+        } else if (savePath == "dynamicImg") { //动态 
             path = "public/" + tokenRes.id + "/" + savePath + "/" + time
             req.body.savePath = tokenRes.id + "/" + savePath + "/" + time
         }
