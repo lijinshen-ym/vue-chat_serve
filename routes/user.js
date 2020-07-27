@@ -2,7 +2,9 @@ const {
     getInfo,
     modify,
     findUser,
+    refresh
 } = require("../controllers/c_user")
+
 
 module.exports = {
     // 获取用户信息
@@ -25,4 +27,9 @@ module.exports = {
         ctx.body = res
     },
 
+    // 获取新token
+    "POST /user/token": async ctx => {
+        let res = await refresh(ctx.request.body)
+        ctx.body = res
+    }
 }

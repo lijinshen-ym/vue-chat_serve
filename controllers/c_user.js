@@ -1,6 +1,6 @@
 const User = require("../model/userModel")
 const Friend = require("../model/friendModel")
-const { verifyToken } = require("../tool/token")
+const { verifyToken, generateToken } = require("../tool/token")
 const { decrypt } = require("../tool/crypto")
 
 // 获取用户信息
@@ -117,17 +117,21 @@ exports.modify = async data => {
 exports.findUser = async data => {
     let res = verifyToken(data.token)
     let user = await User.findOne({ email: data.email })
-    let obj = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatars: user.avatars
-    }
-    let tokenUser = await User.findOne({ _id: res.id })
+    let obj = {}
+    let group = {}
     if (user) {
+        obj = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            avatars: user.avatars,
+            type: "user"
+        }
+        let tokenUser = await User.findOne({ _id: res.id })
         let result = await Friend.findOne({ userID: res.id })
         if (result) {
             let index = result.friend_list.findIndex(item => {
+                console.log(user.id)
                 return item.user == user.id
             })
             if (index >= 0) {
@@ -144,5 +148,16 @@ exports.findUser = async data => {
         return obj
     } else {
         return { msg: "未找到该用户", status: 0 }
+    }
+}
+
+exports.refresh = async data => {
+    console.log(data)
+    let tokenRes = verifyToken(data.token)
+    let token = generateToken(tokenRes.id)
+    return {
+        token,
+        status: 1,
+        msg: "token更新成功"
     }
 }

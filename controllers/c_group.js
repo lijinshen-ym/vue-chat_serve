@@ -1,7 +1,9 @@
 const Group = require("../model/groupModel")
 const User = require("../model/userModel")
+const Friend = require("../model/friendModel")
 const GroupNumber = require("../model/numberModel")
 const GroupList = require("../model/groupListModel")
+const Dialogue = require("../model/dialogueModel")
 const { verifyToken } = require("../tool/token")
 const userSocket = require("../model/userSocketModel")
 const Notify = require("../model/notifyModel")
@@ -76,6 +78,20 @@ exports.groupInfo = async data => {
         return tokenRes.id == item.user._id
     })
     let nickName = user_list[index].nickName
+
+    let friend = await Friend.findOne({ userID: tokenRes.id })
+    if (friend) {
+        let friend_list = friend.friend_list
+        user_list.map(item => {
+            friend_list.map(item2 => {
+                if (item.user._id == item2.user) {
+                    item.nickName = ite2.nickName
+                }
+            })
+            return item
+        })
+        group.user_list = user_list
+    }
     return {
         group,
         nickName
@@ -275,7 +291,7 @@ exports.dissolve = async data => {
     let group = await Group.findById(id)
     let user_list = group.user_list
 
-    // 将该群从群成员的群列表中移除
+    // 将该群从群成员的群列表和对话列表中移除
     let result = await Promise.all(user_list.map(async item => {
         let user_group = await GroupList.findOne({ userID: item.user })
         let group_list = user_group.group_list
@@ -284,9 +300,20 @@ exports.dissolve = async data => {
         })
         group_list.splice(index, 1)
         let g_result = await GroupList.updateOne({ userID: item.user }, { $set: { group_list } })
-
         inform(item.user, group.name, group.manager, "dissolve")
 
+        // 关于对话列表的操作
+        let res = await Dialogue.findOne({ "userID": item.user })
+        if (res) {
+            let chat_list = res.chat_list
+            let index2 = chat_list.findIndex(item => {
+                return id == item.id
+            })
+            if (index2 > -1) {
+                chat_list.splice(index2, 1)
+                let result = await Dialogue.updateOne({ "userID": item.user }, { $set: { chat_list } })
+            }
+        }
         return item
     }))
     // 删除该群

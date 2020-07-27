@@ -17,7 +17,12 @@ exports.dialogueList = async data => {
                 let index = result.friend_list.findIndex(f_item => {
                     return f_item.user._id == item.id
                 })
-                let friend = result.friend_list[index]
+                let friend = null
+                if (index > -1) {
+                    friend = result.friend_list[index]
+                } else {
+                    friend = await User.findById(item.id)
+                }
                 item.avatars = friend.user.avatars
                 item.name = friend.nickName
             } else { //是群聊则寻找群组信息

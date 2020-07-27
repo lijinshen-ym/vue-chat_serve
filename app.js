@@ -25,7 +25,17 @@ const routesData = {}
 app.use(bodyParser());
 app.use(static("./public")) //指定静态目录
 app.use(cors({}))
+app.use(async (ctx, next) => { //检查请求是否携带token
+    if (ctx.request.body.token || ctx.request.query.token || ctx.request.url == '/login' || ctx.request.url == '/register' || ctx.request.url.includes("/upload")) {
+        await next();    //当前路由匹配完成以后继续向下匹配
+    } else {
+        ctx.body = { status: 401, msg: "非法请求" }
+    }
+
+
+})
 app.use(router.routes())
+
 
 
 // 自动化注册后端路由

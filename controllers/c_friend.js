@@ -64,24 +64,30 @@ exports.acquire = async data => {
             }
         }
     } else {
-        let acquire = {
-            userID: result.userID,
-            applyList: []
-        }
-        result.applyList.map(item => {
-            acquire.applyList.push({
-                note: item.note,
-                applyId: item.applyId,
-                time: item.time
+        if (result) {
+            let acquire = {
+                userID: result.userID,
+                applyList: []
+            }
+            result.applyList.map(item => {
+                acquire.applyList.push({
+                    note: item.note,
+                    applyId: item.applyId,
+                    time: item.time
+                })
             })
-        })
-        let arr = await Promise.all(acquire.applyList.map(async item => {
-            let user = await User.findOne({ _id: item.applyId })
-            item.avatars = user.avatars
-            item.name = user.name
-            return item
-        }))
-        return acquire
+            let arr = await Promise.all(acquire.applyList.map(async item => {
+                let user = await User.findOne({ _id: item.applyId })
+                item.avatars = user.avatars
+                item.name = user.name
+                return item
+            }))
+            return acquire
+        } else {
+            return {
+                applyList: []
+            }
+        }
     }
 
 }

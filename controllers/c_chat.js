@@ -175,7 +175,7 @@ exports.history = async data => {
     if (type == "private") {
         let chats = await Chat.findOne({ fromUser: tokenRes.id, toUser: id }).populate("fromUser").populate("toUser")
         let index = friend_list.findIndex(item => {
-            return id == item.user
+            return id == item.user._id
         })
         let name = friend_list[index].nickName
         if (chats) {
@@ -256,7 +256,8 @@ exports.history = async data => {
                         groupID: id,
                         msg_list: []
                     },
-                    name
+                    name,
+                    count
                 }
             }
             let skip = (page - 1) * limit
@@ -267,7 +268,8 @@ exports.history = async data => {
                     groupID: id,
                     msg_list: newList
                 },
-                name
+                name,
+                count
             }
         } else {
             let group = await Group.findById(id)
@@ -277,7 +279,8 @@ exports.history = async data => {
                     groupID: id,
                     msg_list: []
                 },
-                name
+                name,
+                count: 0
             }
         }
     }
