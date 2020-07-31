@@ -1,42 +1,71 @@
-const { avatars, chatMsg, groupMsg, publish } = require("../controllers/c_upload")
+const images = require("images")
+const fs = require("fs")
+const { avatars, chatMsg, groupMsg } = require("../controllers/c_upload")
 const { create, modify } = require("../controllers/c_group")
+
+const basePath = "http://localhost:3000/"
+// const basePath = "http://www.yemengs.cn/"
+
 //图片路由
 module.exports = {
 
     // 用户头像
     "POST /upload/user": async ctx => {
         let token = ctx.req.body.token
-        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let url = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
         let res = await avatars(token, url)
         ctx.body = res
     },
 
     // 发送图片信息 （私聊）
-    "POST /upload/chat/private": async ctx => {
+    "POST /upload/chat/private/img": async ctx => {
         let data = ctx.req.body
-        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
-        data.message = url
+        let url = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let imgPath = "public/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let zipMessage = compression(imgPath, ctx.req.body.savePath, ctx.req.file.filename)
+        data.message = zipMessage
+        data.img = url
         data.type = "image"
         let res = await chatMsg(data)
-        res.message = url
-        ctx.body = res
+        ctx.body = {
+            message: zipMessage,
+            img: url
+        }
+    },
+
+    // 发送语音信息 （私聊）
+    "POST /upload/chat/private/voice": async ctx => {
+        let data = ctx.req.body
+        let voicePath = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        data.message = voicePath
+        data.type = "voice"
+        console.log(data)
+        let res = await chatMsg(data)
+        ctx.body = {
+            message: voicePath,
+        }
     },
 
     // 发送图片信息（群聊）
     "POST /upload/chat/group": async ctx => {
         let data = ctx.req.body
-        let url = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
-        data.message = url
+        let url = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let imgPath = "public/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let zipMessage = compression(imgPath, ctx.req.body.savePath, ctx.req.file.filename)
+        data.message = zipMessage
+        data.img = url
         data.type = "image"
         let res = await groupMsg(data)
-        res.message = url
-        ctx.body = res
+        ctx.body = {
+            message: zipMessage,
+            img: url
+        }
     },
 
     // 创建群组上传群组头像
     "POST /upload/group": async ctx => {
         let data = ctx.req.body
-        data.imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        data.imgUrl = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
         let res = await create(data)
         ctx.body = res
     },
@@ -44,7 +73,7 @@ module.exports = {
     //修改群组头像
     "POST /upload/group/modify": async ctx => {
         let data = ctx.req.body
-        data.imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        data.imgUrl = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
         let res = await modify(data)
         ctx.body = res
     },
@@ -52,7 +81,22 @@ module.exports = {
     // 上传朋友圈图片
     "POST /upload/dynamic": async ctx => {
         // let data = ctx.req.body 
-        let imgUrl = "http://localhost:3000/" + ctx.req.body.savePath + "/" + ctx.req.file.filename
+        let imgUrl = basePath + ctx.req.body.savePath + "/" + ctx.req.file.filename
         ctx.body = imgUrl
     },
+}
+
+//文件遍历方法
+function compression(filePath, savePath, fileName) {
+    //根据文件路径读取文件，返回文件列表
+    let zipPath = "public/" + savePath + "/" + "zip" + fileName  //压缩后保存的路径
+    images(filePath)                 //Load image from file 
+        //加载图像文件
+        .size(200)                          //Geometric scaling the image to 400 pixels width
+        //等比缩放图像到200像素宽
+
+        .save(zipPath, {               //Save the image to a file, with the quality of 50
+            quality: 100                    //保存图片到文件,图片质量为100
+        });
+    return basePath + savePath + "/" + "zip" + fileName  //压缩后保存的路径
 }

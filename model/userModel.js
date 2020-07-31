@@ -18,7 +18,8 @@ const userSchema = new mongoose.Schema({
     },
     avatars: {
         type: String,
-        default: "http://localhost:3000/userImg/default.jpg"
+        // default: "http://localhost:3000/userImg/default.jpg"
+        default: "http://www.yemengs.cn/userImg/default.jpg"
     },
     signature: {
         type: String,

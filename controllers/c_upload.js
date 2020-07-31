@@ -22,7 +22,7 @@ exports.avatars = async (token, url) => {
     }
 }
 
-// 处理用户发送的图片信息(私聊)
+// 处理用户发送的图片和语音信息(私聊)
 exports.chatMsg = async (data) => {
     data.chatType = "private"
     let res = await saveChat(data)
@@ -33,6 +33,8 @@ exports.chatMsg = async (data) => {
     global.io.to(socketUser.socketId).emit("updateChat", {
         belong: userToken.id,
         message: data.message,
+        img: data.img ? data.img : "",
+        chatType: "private",
         date: new Date(),
         type: data.type,
         user: {
@@ -43,7 +45,7 @@ exports.chatMsg = async (data) => {
     return { status: 1, msg: "上传成功", type: "private" }
 }
 
-// 处理用户发送的图片信息(群聊)
+// 处理用户发送的图片和语音信息(群聊)
 exports.groupMsg = async (data) => {
     let { token } = data
     data.chatType = "group"
@@ -64,6 +66,7 @@ exports.groupMsg = async (data) => {
         },
         type: data.type,
         message: data.message,
+        img: data.img ? data.img : "",
         date: new Date()
     }
 

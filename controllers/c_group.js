@@ -84,8 +84,8 @@ exports.groupInfo = async data => {
         let friend_list = friend.friend_list
         user_list.map(item => {
             friend_list.map(item2 => {
-                if (item.user._id == item2.user) {
-                    item.nickName = ite2.nickName
+                if (item.user._id.toString() == item2.user.toString()) {
+                    item.nickName = item2.nickName
                 }
             })
             return item

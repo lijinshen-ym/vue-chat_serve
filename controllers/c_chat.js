@@ -9,7 +9,7 @@ const userSocket = require("../model/userSocketModel")
 
 // 存储聊天记录
 exports.saveChat = async data => {
-    let { id, message, token, type, chatType } = data
+    let { id, message, img, token, type, chatType, duration } = data
     let tokenRes = verifyToken(token)
     let user = await User.findById(tokenRes.id)
     if (chatType == "private") { //私聊
@@ -18,7 +18,7 @@ exports.saveChat = async data => {
         // 存储到token用户的聊天表中
         if (tokenChat) {
             let msg_list = tokenChat.msg_list
-            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, img, type, duration, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: tokenRes.id, toUser: id
             }, {
@@ -29,7 +29,7 @@ exports.saveChat = async data => {
                 fromUser: tokenRes.id,
                 toUser: id,
                 msg_list: [
-                    { message, type, belong: tokenRes.id, date: new Date() }
+                    { message, img, type, duration, belong: tokenRes.id, date: new Date() }
                 ]
             })
         }
@@ -37,7 +37,7 @@ exports.saveChat = async data => {
         let idChat = await Chat.findOne({ fromUser: id, toUser: tokenRes.id })
         if (idChat) {
             let msg_list = idChat.msg_list
-            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, img, type, duration, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: id, toUser: tokenRes.id
             }, {
@@ -48,7 +48,7 @@ exports.saveChat = async data => {
                 fromUser: id,
                 toUser: tokenRes.id,
                 msg_list: [
-                    { message, type, belong: tokenRes.id, date: new Date() }
+                    { message, img, type, duration, belong: tokenRes.id, date: new Date() }
                 ]
 
             })
@@ -109,7 +109,7 @@ exports.saveChat = async data => {
         let chatRes = null
         if (group_chat) {
             let msg_list = group_chat.msg_list
-            msg_list.unshift({ message, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, img, type, belong: tokenRes.id, date: new Date() })
             chatRes = await GroupChat.updateOne({
                 groupID: id
             }, {
@@ -118,7 +118,7 @@ exports.saveChat = async data => {
         } else {
             chatRes = await GroupChat.create({
                 "groupID": id,
-                "msg_list": [{ message, type, "belong": tokenRes.id, "date": new Date() }]
+                "msg_list": [{ message, img, type, "belong": tokenRes.id, "date": new Date() }]
             })
         }
         if (chatRes.groupID || chatRes.nModified) {
@@ -138,21 +138,21 @@ exports.saveChat = async data => {
                         chat_list[index].message = message
                         chat_list[index].date = new Date()
                         chat_list[index].msgType = type
-                        chat_list[index].from = user.name
+                        chat_list[index].from = user._id
                         if (tokenRes.id != item.user) {
                             chat_list[index].unRead = chat_list[index].unRead + 1
                         }
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     } else {
                         chat_list.unshift({
-                            id, from: user.name, type: chatType, msgType: type, message: message, date: new Date(), unRead: 1
+                            id, from: user._id, type: chatType, msgType: type, message: message, date: new Date(), unRead: 1
                         })
                         dialogRes = await Dialogue.updateOne({ "userID": item.user }, { $set: { "chat_list": chat_list } })
                     }
                 } else {
                     dialogRes = await Dialogue.create({
                         "userID": item.user,
-                        "chat_list": [{ "id": id, "from": user.name, "type": chatType, "msgType": type, "message": message, "date": new Date(), "unRead": 1 }]
+                        "chat_list": [{ "id": id, "from": user._id, "type": chatType, "msgType": type, "message": message, "date": new Date(), "unRead": 1 }]
                     })
                 }
                 return item
@@ -231,7 +231,7 @@ exports.history = async data => {
                     }
                 } else {
                     let index = friend_list.findIndex(item2 => {
-                        return item.belong == item2.user
+                        return item.belong == item2.user._id
                     })
                     if (index > -1) {
                         item.user = {

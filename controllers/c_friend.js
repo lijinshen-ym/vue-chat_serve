@@ -192,7 +192,7 @@ exports.friends = async data => {
             initial = initial.toUpperCase()
             val[initial].push(friend_list[i])
         }
-        return { friends: val, total: friend_list.length }
+        return { friends: val, total: friend_list.length, friend_list }
     } else {
         return { friends: {}, total: 0 }
     }
