@@ -4,7 +4,7 @@ const mongoose = require("mongoose")
 const dynamicSchema = new mongoose.Schema({
     userID: { type: mongoose.Schema.Types.ObjectId, ref: "user" },	//用户id
     logList: [
-        { text: String, imgList: Array, comments: Array, like: Array, date: Date, address: String }
+        { text: String, imgList: Array, originalList: Array, comments: Array, like: Array, date: Date, address: String }
     ],
 })
 

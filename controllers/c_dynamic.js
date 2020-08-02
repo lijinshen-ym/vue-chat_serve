@@ -1,3 +1,4 @@
+const fs = require("fs")
 const Dynamic = require("../model/dynamicModel")
 const Friend = require("../model/friendModel")
 const Social = require("../model/socialModel")
@@ -10,7 +11,7 @@ const { verifyToken } = require("../tool/token")
 
 // 发布动态
 exports.published = async data => {
-    let { token, text, imgList, comments, like, date, address } = data
+    let { token, text, imgList, comments, originalList, like, date, address } = data
     let tokenRes = verifyToken(token)
     let user = await User.findById(tokenRes.id)
     // 添加到我的动态表中
@@ -18,14 +19,14 @@ exports.published = async data => {
     if (tokenDynamic) {
         let logList = tokenDynamic.logList
         logList.unshift({
-            text, imgList, comments, like, date, address
+            text, imgList, originalList, comments, like, date, address
         })
         res = await Dynamic.updateOne({ userID: tokenRes.id }, { $set: { logList } })
     } else {
         res = await Dynamic.create({
             userID: tokenRes.id,
             logList: [{
-                text, imgList, comments, like, date, address
+                text, imgList, originalList, comments, like, date, address
             }]
         })
     }
@@ -347,6 +348,7 @@ exports.acquire = async data => {
                 nickName: obj.nickName,
                 text: item.text,
                 imgList: item.imgList,
+                originalList: item.originalList,
                 comments: item.comments,
                 like: item.like,
                 date: item.date,
@@ -382,9 +384,28 @@ exports.deleteDynamic = async data => {
     let index = logList.findIndex(item => {
         return new Date(item.date).getTime() == new Date(date).getTime()
     })
+
+    // 删除图片
+    let imgList = logList[index].imgList
+    let originalList = logList[index].originalList
+    let newImgList = [...imgList, ...originalList]
+    let basePath = "http://localhost:3000"
+    // let basePath = "http://yemengs.cn"
+    if (newImgList.length > 0) {
+        newImgList.forEach(element => {
+            let path = element.replace(basePath, "public")
+            if (fs.existsSync(path)) {
+                fs.unlinkSync(path);
+            }
+            console.log(path)
+        });
+    }
+
     logList.splice(index, 1)
 
     let res = await Dynamic.updateOne({ userID: tokenRes.id }, { $set: { logList } })
+
+
 
     let friends = await Friend.findOne({ userID: tokenRes.id })
     if (friends) {
@@ -507,6 +528,7 @@ exports.singleDynamic = async data => {
         nickName: obj.nickName,
         text: log.text,
         imgList: log.imgList,
+        originalList: log.originalList,
         comments: log.comments,
         like: log.like,
         date: log.date,

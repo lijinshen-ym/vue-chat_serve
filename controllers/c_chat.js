@@ -1,3 +1,4 @@
+const fs = require("fs")
 const { verifyToken } = require("../tool/token")
 const Chat = require("../model/chatModel")
 const GroupChat = require("../model/groupChatModel")
@@ -7,9 +8,20 @@ const Dialogue = require("../model/dialogueModel")
 const User = require("../model/userModel")
 const userSocket = require("../model/userSocketModel")
 
+let timer = null
+let timer2 = null
+// let imgStorageTime = 10 * 24 * 60 * 60 * 1000  //图片的存储时间 10天
+// let voiceStorageTime = 3 * 24 * 60 * 60 * 1000  //语音的存储时间 3天
+// let time = 10 * 60 * 60 * 1000  //定时器的执行时间 10个小时
+
+let imgStorageTime = 10 * 1000  //图片的存储时间 10天
+let voiceStorageTime = 10 * 1000  //语音的存储时间 3天
+let time = 2000  //定时器的执行时间 10个小时
+
 // 存储聊天记录
 exports.saveChat = async data => {
     let { id, message, img, token, type, chatType, duration } = data
+    console.log("存储聊天记录")
     let tokenRes = verifyToken(token)
     let user = await User.findById(tokenRes.id)
     if (chatType == "private") { //私聊
@@ -18,6 +30,48 @@ exports.saveChat = async data => {
         // 存储到token用户的聊天表中
         if (tokenChat) {
             let msg_list = tokenChat.msg_list
+
+            // 防抖 删除录音和图片（超过指定存储时间将自动删除）
+            // clearTimeout(timer)
+            // timer = setTimeout(async () => {
+            //     let basePath = "http://localhost:3000"
+            //     // let basePath = "http://yemengs.cn"
+            //     if (msg_list.length > 0) {
+            //         msg_list.forEach(element => {
+            //             if (element.type == "image") {
+            //                 let distance = (new Date().getTime() - new Date(element.date).getTime())
+            //                 if (distance > imgStorageTime) { //删除图片
+            //                     let path = element.message.replace(basePath, "public")
+            //                     if (fs.existsSync(path)) {
+            //                         fs.unlinkSync(path);
+            //                     }
+            //                     path = element.img.replace(basePath, "public")
+            //                     if (fs.existsSync(path)) {
+            //                         fs.unlinkSync(path);
+            //                     }
+            //                     element.message = basePath + "/common/overdue.svg"
+            //                     element.message = basePath + "/common/overdue.svg"
+            //                 }
+            //             } else if (element.type == "voice") { //删除录音
+            //                 let distance = (new Date().getTime() - new Date(element.date).getTime()) / 1000
+            //                 if (distance > voiceStorageTime) {
+            //                     let path = element.message.replace(basePath, "public")
+            //                     if (fs.existsSync(path)) {
+            //                         fs.unlinkSync(path);
+            //                     }
+            //                     element.message = "过期已删除"
+            //                 }
+            //             }
+
+            //         });
+            //         chatRes = await Chat.updateOne({
+            //             fromUser: tokenRes.id, toUser: id
+            //         }, {
+            //             $set: { msg_list }
+            //         })
+            //     }
+            // }, time)
+
             msg_list.unshift({ message, img, type, duration, belong: tokenRes.id, date: new Date() })
             chatRes = await Chat.updateOne({
                 fromUser: tokenRes.id, toUser: id
@@ -109,7 +163,7 @@ exports.saveChat = async data => {
         let chatRes = null
         if (group_chat) {
             let msg_list = group_chat.msg_list
-            msg_list.unshift({ message, img, type, belong: tokenRes.id, date: new Date() })
+            msg_list.unshift({ message, img, duration, type, belong: tokenRes.id, date: new Date() })
             chatRes = await GroupChat.updateOne({
                 groupID: id
             }, {
@@ -118,7 +172,7 @@ exports.saveChat = async data => {
         } else {
             chatRes = await GroupChat.create({
                 "groupID": id,
-                "msg_list": [{ message, img, type, "belong": tokenRes.id, "date": new Date() }]
+                "msg_list": [{ message, img, duration, type, "belong": tokenRes.id, "date": new Date() }]
             })
         }
         if (chatRes.groupID || chatRes.nModified) {

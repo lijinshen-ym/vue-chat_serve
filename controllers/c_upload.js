@@ -34,6 +34,7 @@ exports.chatMsg = async (data) => {
         belong: userToken.id,
         message: data.message,
         img: data.img ? data.img : "",
+        duration: data.duration ? data.duration : "",
         chatType: "private",
         date: new Date(),
         type: data.type,
@@ -67,6 +68,7 @@ exports.groupMsg = async (data) => {
         type: data.type,
         message: data.message,
         img: data.img ? data.img : "",
+        duration: data.duration ? data.duration : "",
         date: new Date()
     }
 

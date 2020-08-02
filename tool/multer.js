@@ -55,8 +55,7 @@ var storage = multer.diskStorage({
         } else {
             cb(null, Date.now() + "." + fileFormat[fileFormat.length - 1]);
         }
-        console.log(file.originalname, fileFormat)
-
+        // console.log(file.originalname, fileFormat)
     }
 })
 //加载配置

@@ -37,7 +37,6 @@ app.use(async (ctx, next) => { //检查请求是否携带token
 app.use(router.routes())
 
 
-
 // 自动化注册后端路由
 const routesPath = path.join(__dirname, "routes")
 const files = fs.readdirSync(routesPath)
